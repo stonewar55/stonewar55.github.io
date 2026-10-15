@@ -1,0 +1,2661 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="端午石合戰：被遺忘的臺灣端午節石戰習俗">
+<meta name="theme-color" content="#15120e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>端午石合戰</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<style>
+/* Layout: the game fills the screen. A small HUD floats over the crowd at the top edge; the title, round results and the help sheet are overlays inside the game. Single deliberate look: ink around a printed paper field. */
+:root{
+  --ink:#15120e; --ink-3:#2d271f; --rule:#51473a;
+  --paper:#ece3cf; --paper-dim:#b5a990;
+  --sheet:#e8e1ce; --sheet-ink:#1b1814; --sheet-dim:#5d5447; --sheet-rule:#b9ae96;
+  --veil:rgba(21,18,14,.8);
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU","MingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-latin:"Helvetica Neue",Helvetica,Arial,"Liberation Sans",Roboto,sans-serif;
+  --grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .11 0 0 0 0 .1 0 0 0 0 .08 1.2 0 0 0 -.66'/></filter><rect width='140' height='140' filter='url(%23g)'/></svg>");
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--f-body);font-size:15px;line-height:1.6;overflow:hidden;overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#app{position:fixed;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);left:env(safe-area-inset-left,0px);right:env(safe-area-inset-right,0px);
+  display:grid;place-items:center;overflow:hidden}
+#cv{display:block;touch-action:none;background:#ebe4d1;cursor:default}
+
+/* HUD over the top edge of the field */
+.hud{position:absolute;top:8px;left:8px;right:8px;z-index:2;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none}
+.hud > *{pointer-events:auto}
+/* The HUD is set like the page it sits on: the score is a ruled newspaper box, the buttons are slugs of type.
+   Thick-thin rules, Ming type, a little paper grain, and an SVG filter (#press) that roughens the edges like ink on newsprint. */
+.tag,.icon{--pp:#ebe4d1;color:var(--sheet-ink);background:var(--grain),var(--pp);border:2px solid var(--sheet-ink);
+  box-shadow:inset 0 0 0 2px var(--pp),inset 0 0 0 3px var(--sheet-ink);font-family:var(--f-display);font-weight:900;line-height:1;filter:url(#press)}
+.tag{position:absolute;left:8px;bottom:8px;z-index:2;display:flex;align-items:stretch;padding:3px;pointer-events:none;font-variant-numeric:tabular-nums}
+.tag span{display:flex;align-items:baseline;gap:4px;padding:5px 8px 4px;font-size:11px;font-weight:700;letter-spacing:.08em;white-space:nowrap}
+.tag span + span{border-left:1px solid var(--sheet-ink)}
+.tag b{font-size:16px;font-weight:900;letter-spacing:0}
+.tools{display:flex;gap:6px;margin-left:auto}
+.icon{padding:8px 9px 7px 11px;cursor:pointer;min-height:31px;font-size:13px;letter-spacing:.14em}
+.icon:hover,.icon:focus-visible{color:var(--pp);background:var(--sheet-ink);box-shadow:inset 0 0 0 2px var(--sheet-ink),inset 0 0 0 3px var(--pp)}
+.icon:active{transform:translateY(1px)}
+button:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
+[hidden]{display:none!important}
+/* after the police scene: the button that goes on to the closing sheet (a click anywhere on the field works too) */
+.goon{position:absolute;right:12px;bottom:12px;z-index:2;display:flex;align-items:center;gap:9px;font-size:16px;line-height:1.2;letter-spacing:.14em;
+  padding:10px 13px 9px 16px;animation:goon-in .35s ease-out both}
+.goon.left{right:auto;left:12px}
+.goon::after{content:"";border-left:7px solid currentColor;border-top:5px solid transparent;border-bottom:5px solid transparent;animation:nudge 1.3s ease-in-out infinite}
+@keyframes goon-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes nudge{50%{transform:translateX(3px)}}
+@media (prefers-reduced-motion:reduce){.goon,.goon::after{animation:none}}
+/* 號外！: the strip that drops in when an achievement is earned, set between heavy newspaper rules */
+.clip{position:absolute;top:50px;left:50%;z-index:5;display:flex;align-items:baseline;max-width:calc(100% - 32px);padding:9px 18px 8px;
+  color:var(--sheet-ink);background:var(--grain),#ebe4d1;border-top:4px solid var(--sheet-ink);border-bottom:4px solid var(--sheet-ink);
+  box-shadow:inset 0 2px 0 #ebe4d1,inset 0 3px 0 var(--sheet-ink),inset 0 -2px 0 #ebe4d1,inset 0 -3px 0 var(--sheet-ink),0 6px 18px rgba(0,0,0,.35);
+  font-family:var(--f-display);filter:url(#press);pointer-events:none;opacity:0;transform:translate(-50%,-14px)}
+.clip.low{top:auto;bottom:84px} /* over the closing sheet it keeps clear of the 出人命了 stamp */
+.clip.in{animation:clip-in .38s cubic-bezier(.2,.9,.3,1.2) forwards}
+.clip.out{animation:clip-out .4s ease-in forwards}
+.clip .ext{flex:none;font-weight:900;font-size:13px;letter-spacing:.1em;padding-right:11px;margin-right:11px;border-right:1px solid var(--sheet-ink);white-space:nowrap}
+.clip b{font-weight:900;font-size:clamp(15px,4.4vw,19px);line-height:1.2;letter-spacing:.06em}
+@keyframes clip-in{to{opacity:1;transform:translate(-50%,0)}}
+@keyframes clip-out{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-10px)}}
+@media (prefers-reduced-motion:reduce){.clip.in{animation:none;opacity:1;transform:translate(-50%,0)}.clip.out{animation:none;opacity:0}}
+
+/* overlays */
+.ov{position:absolute;inset:0;z-index:3;display:grid;place-items:center;background:var(--veil);padding:16px;overflow:auto;text-align:center}
+.ov-inner{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:540px;margin:auto}
+.logo{margin:0;font-family:var(--f-display);font-weight:900;font-size:clamp(40px,9vmin,76px);line-height:1;letter-spacing:.14em;
+  padding:.16em .08em .16em .22em;border:2px solid var(--paper);box-shadow:0 0 0 5px var(--ink),0 0 0 6px var(--paper)}
+.kicker{margin:6px 0 0;font-size:12px;letter-spacing:.3em;color:var(--paper-dim)}
+.ov h2{margin:0;font-family:var(--f-display);font-weight:900;font-size:clamp(28px,7vmin,52px);letter-spacing:.14em;line-height:1.1;text-wrap:balance}
+.ov p{margin:0;color:var(--paper-dim)}
+.ov .lead{color:var(--paper);font-size:clamp(14px,2.4vmin,17px);text-wrap:pretty}
+.acts{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.btn{font-family:var(--f-display);font-weight:700;color:var(--team-fg,var(--paper));background:var(--team,var(--ink-3));border:1px solid var(--paper);padding:8px 18px;cursor:pointer;display:flex;gap:10px;align-items:center;font-size:16px;letter-spacing:.06em}
+.btn b{font-size:clamp(20px,4vmin,28px);font-weight:900}
+.btn:hover{filter:brightness(1.12)}
+.btn.plain{background:var(--ink-3)}
+.namer{display:flex;align-items:stretch;border:1px solid var(--paper);box-shadow:0 0 0 3px var(--ink);background:var(--paper)}
+.namer input{font-family:var(--f-display);font-weight:900;font-size:clamp(24px,5vmin,34px);letter-spacing:.12em;width:5.4em;min-width:0;padding:6px 10px;
+  border:0;background:var(--paper);color:var(--ink);text-align:center;-webkit-user-select:text;user-select:text}
+.namer input::placeholder{color:#8d846f}
+.namer input:focus{outline:2px solid var(--ink);outline-offset:-4px}
+.seg{display:flex;border-left:1px solid var(--ink)}
+.seg button{font-family:var(--f-display);font-weight:900;font-size:clamp(20px,4vmin,28px);padding:0 14px;border:0;background:var(--paper);color:#8d846f;cursor:pointer}
+.seg button[aria-checked="true"]{background:var(--ink);color:var(--paper)}
+.linkish{font:inherit;font-size:14px;color:var(--paper);background:none;border:0;border-bottom:1px solid var(--paper-dim);padding:2px 0;cursor:pointer}
+.ov .fact{display:flex;flex-direction:column;gap:2px;max-width:44ch;font-size:13px;line-height:1.6;border-top:1px solid var(--rule);padding-top:8px;margin-top:2px;text-wrap:pretty}
+.ov .fact span:first-child{font-family:var(--f-display);font-weight:700;color:var(--paper-dim);letter-spacing:.2em;font-size:12px}
+.ov .fact span:last-child{color:var(--paper)}
+@media (max-height:460px){ .ov-inner{gap:8px} .ov .note{display:none} .kicker{margin-top:2px} .btn{padding:6px 14px} }
+
+/* upgrade cards, dealt after each win */
+.ov-inner.wide{max-width:780px;width:100%}
+.pick{font-family:var(--f-display);font-weight:700;letter-spacing:.24em;font-size:13px}
+.ov p.pick{color:var(--paper)}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%;padding:4px}
+.card{font:inherit;text-align:left;cursor:pointer;background:var(--sheet);color:var(--sheet-ink);border:1px solid var(--sheet-ink);
+  box-shadow:0 0 0 3px var(--sheet),0 0 0 4px var(--sheet-ink);padding:12px 12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0;
+  transition:transform .15s ease;animation:deal .38s cubic-bezier(.2,.9,.3,1.15) both}
+.card:nth-child(2){animation-delay:.08s}.card:nth-child(3){animation-delay:.16s}
+.card:hover,.card:focus-visible{transform:translateY(-5px) rotate(-.8deg)}
+.card:focus-visible{outline:2px solid var(--paper);outline-offset:6px}
+@keyframes deal{from{opacity:0;transform:translateY(26px) rotate(2.5deg)}to{opacity:1;transform:none}}
+.card .key{font-size:11px;color:var(--sheet-dim);letter-spacing:.1em;display:flex;gap:8px;align-items:center}
+.card .tg{border:1px solid currentColor;padding:1px 5px;font-family:var(--f-display);font-weight:700;font-size:11px;letter-spacing:.12em;line-height:1.3}
+.card.gun .tg{background:var(--sheet);color:var(--sheet-ink);border-color:var(--sheet)}
+.card .nm{font-family:var(--f-display);font-weight:900;font-size:clamp(22px,3.8vmin,30px);letter-spacing:.1em;line-height:1.1}
+.card .lv{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--sheet-dim)}
+.card .pip{width:7px;height:7px;border:1px solid currentColor;transform:rotate(45deg)}
+.card .pip.on{background:currentColor}
+.card .ds{font-size:13px;line-height:1.55;text-wrap:pretty}
+.card .nt{font-family:var(--f-display);font-size:13px;margin-top:2px}
+.en{font-family:var(--f-latin);font-style:normal;letter-spacing:0}
+.card.gun{background:var(--sheet-ink);color:var(--sheet);border-color:var(--sheet);box-shadow:0 0 0 3px var(--sheet-ink),0 0 0 4px var(--sheet)}
+.card.gun .key,.card.gun .lv{color:var(--paper-dim)}
+.ov p.build{font-size:12px;color:var(--paper-dim);letter-spacing:.04em}
+@media (prefers-reduced-motion:reduce){.card{animation:none;transition:none}}
+@media (max-width:560px){ .cards{grid-template-columns:1fr;gap:10px} .card{display:grid;grid-template-columns:auto 1fr;column-gap:10px;row-gap:2px;padding:8px 10px;align-items:baseline}
+  .card .key{grid-row:1/3} .card .ds,.card .nt{grid-column:2} .card .nm{font-size:22px} }
+@media (max-height:500px){ .cards{gap:10px} .card{padding:8px 10px;gap:3px} .card .ds{font-size:12px} .ov-inner.wide .fact,.ov-inner.wide .lead{display:none} }
+
+/* the closing sheet */
+.sheet.end .stamp{display:table;margin:2px auto 14px;font-family:var(--f-display);font-weight:900;font-size:clamp(24px,5.5vmin,38px);letter-spacing:.12em;
+  border:4px double var(--sheet-ink);padding:4px 14px} /* set straight, as a headline box in the paper would be */
+.ov .sheet.end p.stamp{color:var(--sheet-ink)}
+.ov .sheet.end .end-stats{font-family:var(--f-display);font-weight:700;text-align:center;max-width:none}
+.ov .sheet.end .end-build{text-align:center;font-size:13px;color:var(--sheet-dim);max-width:none}
+.ov p.rankline{color:var(--paper);font-family:var(--f-display);font-weight:700;letter-spacing:.06em}
+.sheet-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px 14px 14px;border-top:1px solid var(--sheet-rule)}
+
+/* help sheet: a page from an old journal */
+.ov.help{align-items:start}
+.sheet{width:min(680px,100%);margin:auto;background:var(--sheet);color:var(--sheet-ink);text-align:left;border:1px solid var(--sheet-ink);box-shadow:0 0 0 4px var(--sheet),0 0 0 5px var(--sheet-ink);
+  display:flex;flex-direction:column;max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);-webkit-user-select:text;user-select:text}
+.sheet-head{display:flex;align-items:center;gap:12px;padding:12px 14px 0}
+.sheet-head h2{margin:0;font-family:var(--f-display);font-weight:900;font-size:22px;letter-spacing:.14em;color:var(--sheet-ink)}
+.close{margin-left:auto;font:inherit;font-family:var(--f-display);font-weight:700;font-size:14px;color:var(--sheet);background:var(--sheet-ink);border:0;padding:7px 12px;cursor:pointer}
+.tabs{display:flex;gap:2px;padding:10px 14px 0;border-bottom:1px solid var(--sheet-ink)}
+.tabs button{font:inherit;font-family:var(--f-display);font-weight:700;font-size:15px;color:var(--sheet-dim);background:none;border:1px solid transparent;border-bottom:0;padding:6px 12px;cursor:pointer;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--sheet-ink);border-color:var(--sheet-ink);background:var(--sheet)}
+.pane{flex:1 1 auto;min-height:0;overflow:auto;padding:14px 16px 18px;font-size:15px;line-height:1.75;-webkit-overflow-scrolling:touch}
+.pane h3{font-family:var(--f-display);font-weight:900;font-size:17px;letter-spacing:.06em;margin:16px 0 4px}
+.pane h3:first-child{margin-top:0}
+.ov .pane p{margin:0 0 8px;max-width:62ch;text-wrap:pretty;color:var(--sheet-ink)}
+.ov .pane .small{color:var(--sheet-dim)}
+.pane dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 14px}
+.pane dt{font-family:var(--f-display);font-weight:900;white-space:nowrap}
+.pane dd{margin:0;min-width:0}
+.pane .small{font-size:13px}
+.pane a{color:var(--sheet-ink)}
+.tabs button{flex:none;white-space:nowrap}
+@media (max-width:420px){ .tabs{padding:10px 8px 0} .tabs button{padding:6px 8px;font-size:14px} }
+/* 戰績: a newspaper results column */
+.rank{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:14px;line-height:1.3}
+.rank th{font-family:var(--f-display);font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--sheet-dim);text-align:left;padding:4px 6px;border-bottom:2px solid var(--sheet-ink);white-space:nowrap}
+.rank td{padding:7px 6px 6px;border-bottom:1px solid var(--sheet-rule);vertical-align:baseline}
+.rank .s{text-align:right}
+.rank td.n{font-family:var(--f-display);font-weight:900;white-space:nowrap}
+.rank tr.me td{background:rgba(27,24,20,.07);font-weight:700}
+.rank .nm{font-family:var(--f-display);font-weight:900;white-space:nowrap}
+.rank .sd{display:inline-block;width:.68em;height:.68em;border:1.5px solid var(--sheet-ink);margin-right:5px;vertical-align:-.04em}
+.rank .sd.k{background:var(--sheet-ink)}
+.rank .st{display:inline-block;margin:0 4px 2px 0;padding:2px 4px 1px;border:1.5px solid currentColor;font-family:var(--f-display);font-weight:900;font-size:11px;line-height:1.1;letter-spacing:.08em;transform:rotate(-4deg);white-space:nowrap}
+.rank .dt{color:var(--sheet-dim);font-size:12px;white-space:nowrap}
+@media (max-width:480px){ .rank .hx{display:none} .rank td,.rank th{padding-left:4px;padding-right:4px} }
+/* 剪報: clippings pasted in a scrapbook; the ones not yet in the paper are only a dashed cutting line */
+.clips{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:12px;padding:4px 2px 8px}
+.clipc{padding:10px 11px 9px;background:var(--sheet);border:1px solid var(--sheet-ink);box-shadow:inset 0 0 0 2px var(--sheet),inset 0 0 0 3px var(--sheet-ink),2px 2px 0 rgba(27,24,20,.16);transform:rotate(var(--r,0deg))}
+.clipc h4{margin:0 0 5px;font-family:var(--f-display);font-weight:900;font-size:17px;line-height:1.25;letter-spacing:.04em}
+.ov .pane .clipc p{margin:0;font-size:12px;line-height:1.5;color:var(--sheet-dim)}
+.clipc .dt{display:block;margin-top:7px;font-size:11px;letter-spacing:.06em;color:var(--sheet-dim)}
+.clipc.off{background:transparent;border:1px dashed var(--sheet-dim);box-shadow:none;transform:none}
+.clipc.off h4{color:var(--sheet-dim)}
+.ov .pane p.rankline{margin:0}
+.links{display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:center}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="cv" aria-label="端午石合戰遊戲畫面"></canvas>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <filter id="press" x="-4%" y="-12%" width="108%" height="124%"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="1.3" xChannelSelector="R" yChannelSelector="G"/></filter>
+  </svg>
+  <div class="tag" id="stats" hidden><span>第<b id="sRound">一</b>回</span><span>對手<b id="sFoes">0</b></span><span>分數<b id="sScore">0</b></span><span>重來<b id="sRetry">2</b></span></div>
+  <div class="hud">
+    <div class="tools">
+      <button class="icon" id="helpBtn" type="button">說明</button>
+      <button class="icon" id="mute" type="button" aria-pressed="false">音效 開</button>
+    </div>
+  </div>
+  <button class="icon goon" id="goOn" type="button" hidden>點一下繼續</button>
+  <div class="clip" id="clip" hidden aria-live="polite"><span class="ext">號外！</span><b></b></div>
+
+  <div class="ov" id="ovTitle">
+    <div class="ov-inner">
+      <h1 class="logo">端午石合戰</h1>
+      <p class="kicker">溪畔墳場 · 兩陣對擲</p>
+      <p class="lead">石戰有氏族對氏族，也有庄對庄。替你這陣取個名。</p>
+      <div class="namer">
+        <input id="teamName" type="text" maxlength="4" autocomplete="off" spellcheck="false" aria-label="陣名">
+        <div class="seg" role="radiogroup" aria-label="庄或氏">
+          <button type="button" role="radio" id="kindZ" aria-checked="true">庄</button>
+          <button type="button" role="radio" id="kindS" aria-checked="false">氏</button>
+        </div>
+      </div>
+      <div class="acts">
+        <button class="btn" id="pickShi" type="button" style="--team:#1b1814;--team-fg:var(--paper)"><b>穿黑衣</b></button>
+        <button class="btn" id="pickHx" type="button" style="--team:var(--paper);--team-fg:var(--ink)"><b>穿白衣</b></button>
+      </div>
+      <p class="note">按住自己人：跟著跑並蓄力 · 放開：往左上方擲石</p>
+      <div class="links"><button class="linkish" id="helpFromTitle" type="button">玩法與石戰習俗</button><button class="linkish" id="rankFromTitle" type="button">戰績・剪報</button></div>
+    </div>
+  </div>
+
+  <div class="ov" id="ovRound" hidden>
+    <div class="ov-inner wide">
+      <h2 id="rTitle">第一回 得勝</h2>
+      <p class="lead" id="rLead"></p>
+      <p class="pick">選一樣本事，帶進下一回</p>
+      <div class="cards" id="cards" role="group" aria-label="三選一"></div>
+      <p class="build" id="rBuild"></p>
+      <p class="fact"><span>石戰小識</span><span id="rFact"></span></p>
+    </div>
+  </div>
+
+  <div class="ov" id="ovOver" hidden>
+    <div class="ov-inner">
+      <h2>敗陣</h2>
+      <p class="lead" id="oLead"></p>
+      <p class="rankline" id="oRank"></p>
+      <p class="note">傷不記仇，輸不記恨。</p>
+      <div class="acts">
+        <button class="btn" id="retryBtn" type="button" style="--team:var(--paper);--team-fg:var(--ink)">重來這一回</button>
+        <button class="btn plain" id="againBtn" type="button">同一邊再戰</button>
+        <button class="btn plain" id="swapBtn" type="button">換邊</button>
+      </div>
+      <button class="linkish" id="rankFromOver" type="button">戰績・剪報</button>
+      <p class="fact"><span>石戰小識</span><span id="oFact"></span></p>
+    </div>
+  </div>
+
+  <div class="ov help" id="ovEnd" hidden>
+    <article class="sheet end" role="dialog" aria-modal="true" aria-labelledby="endTitle">
+      <div class="sheet-head"><h2 id="endTitle">結算</h2></div>
+      <section class="pane">
+        <p class="stamp">出人命了　惡俗取締</p>
+        <p class="end-stats" id="eStats"></p>
+        <p class="end-build" id="eBuild"></p>
+        <h3>石戰怎麼消失的</h3>
+        <p>1934 年，殖民地警察與民俗學家鈴木清一郎記下屏東佳冬石戰的終結：八十多年前的一場端午石戰，水底寮打敗北旗尾之後，按慣例去敗方的房屋洗劫粽子，卻失控演變成大暴亂。被攻擊的一方不滿對方太過火，拿出獵槍還擊投石的人，鬧出了人命，該地從此不再石戰。</p>
+        <p>石戰本質上是「傷不記仇，輸不記恨」的端午社會狂歡，而非武裝械鬥；但在日本殖民政府眼中，它的群眾動員規模與暴力本質，卻是可能失控為叛亂暴動的武裝演習。二十世紀初起，全臺的石戰陸續被取締，改造成以賽跑為主的運動會，在 1920 年代前後逐漸式微；太平洋戰爭爆發、青壯男子被徵召從軍以後，便消失了。</p>
+        <p class="small">出處：鈴木清一郎 1934；楊佳霖 2011。完整書目見說明的「參考」。</p>
+        <h3>石戰從未消失過？</h3>
+        <p>雖然人們不再石戰，但石戰遊戲在臺灣並未真正被現代性消滅，而是轉化成傷害更低且規則明確的躲避球遊戲，在各級校園發揮著類似的合法釋放暴力、體育競技與消化潛在衝突的作用。</p>
+        <p>躲避球的臺灣歷史底蘊，或許遠比我們想的還要深遠，如此才能解釋，為何本質上暴力的躲避球，會理所當然地在臺灣校園被廣泛推廣給小學生：背後正是端午節石戰的幽靈，在小學裡遊蕩著。</p>
+      </section>
+      <div class="sheet-foot">
+        <button class="btn plain" id="endAgain" type="button">同一邊再來一局</button>
+        <button class="btn plain" id="endSwap" type="button">換邊</button>
+        <button class="btn plain" id="endRank" type="button">戰績・剪報</button>
+      </div>
+    </article>
+  </div>
+
+  <div class="ov help" id="ovHelp" hidden>
+    <article class="sheet" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <div class="sheet-head">
+        <h2 id="helpTitle">端午石合戰</h2>
+        <button class="close" id="helpClose" type="button">回到遊戲</button>
+      </div>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="tab-play" aria-selected="true" aria-controls="pane-play">玩法</button>
+        <button type="button" role="tab" id="tab-rank" aria-selected="false" aria-controls="pane-rank">戰績</button>
+        <button type="button" role="tab" id="tab-clips" aria-selected="false" aria-controls="pane-clips">剪報</button>
+        <button type="button" role="tab" id="tab-lore" aria-selected="false" aria-controls="pane-lore">石戰是什麼</button>
+        <button type="button" role="tab" id="tab-src" aria-selected="false" aria-controls="pane-src">參考</button>
+      </div>
+      <section class="pane" id="pane-play" role="tabpanel" aria-labelledby="tab-play">
+        <dl>
+          <dt>按住</dt><dd>按住自己陣營的任何一個人，他會先彎腰撿起一顆石頭，再跟著手指或游標跑、一邊蓄力，頭旁的量條越滿丟越遠。過不了溪。</dd>
+          <dt>放開</dt><dd>放開就從他所在的位置往左上方 45 度丟出去。蓄力時會畫出石頭出手後的前半段弧線，落在哪裡要自己判斷。石頭還沒撿起來就放手，不會丟。</dd>
+          <dt>掩護</dt><dd>墓石擋得住低飛的石頭。對手也會躲到墓石後面。</dd>
+          <dt>本事</dt><dd>每贏一回，從三樣本事裡挑一樣帶進下一回。標「我」的只加在你按住的人身上：目色看得到落點、大粒石比較好打中、散石一把撒出去、彈石落地後往前再彈一下。標「全隊」的照顧大家：斗笠擋石頭、帶陣讓自己人丟得準、拉攏看熱鬧的人在場邊幫忙、香灰讓倒下的人站起來。打過好幾回之後，還可能出現別的東西。</dd>
+          <dt>隊友</dt><dd>沒在操控的自己人會自己走動、隨手丟幾顆，但不太準，主力還是靠你。</dd>
+          <dt>勝負</dt><dd>挨三下就倒地退場，頭上的菱形是剩下的氣力。打倒對面全部人進入下一回，受傷的人浸過溪水、全隊回滿氣力，對手則越來越多；剪報「擲石禁止」見報以後，第五回起對手每五回才變強一次。我方全倒就輸了這一回，每局有兩次重來這一回的機會。</dd>
+          <dt>鍵盤</dt><dd>按 1 到 5 可以切換操控的人。</dd>
+        </dl>
+      </section>
+      <section class="pane" id="pane-lore" role="tabpanel" aria-labelledby="tab-lore" hidden>
+        <h3>節氣裡的儀式性戰爭</h3>
+        <p>石戰又叫鬥石、投石、擲石、石戲，日治時期的日文報紙稱為「石合戰」，是前現代東亞廣泛分佈的節氣儀式性戰爭遊戲，中國東南、日本、朝鮮都有紀錄。兩方對壘，互擲石塊，場面混亂而血腥。</p>
+        <p>日治時期的報導共留下約二十則紀錄，多數在端午節，少數在元宵或清明。地點遍及臺中豐原、沙鹿、清水、神岡，彰化鹿港，雲林斗六、北港，嘉義市與朴子，屏東東港與佳冬。</p>
+        <h3>鹿港：溪畔墳場</h3>
+        <p>1896 年的《鹿港風俗一斑》記載，鹿港人在清明前後互擲石頭，相信不打就會有熱病流行，受的傷浸過水就會好。1942 年賴襄南在《民俗臺灣》的記錄更詳細：石戰從清初延續到明治末年，地點在鹿港溪邊多墓石、便於防守的墳場，參加的男子達數千人。</p>
+        <p>鹿港是施、黃、許三大氏族聚居之地：施氏自成一陣，黃、許兩氏聯手對抗，其他氏族自行選邊。當地有兩種說法：一是驅邪，不打的話整個街區會遭災；一是施、黃兩氏素有宿怨，藉此宣洩。兩者並不互斥，同一場石戰可以同時是祈福避疫的儀式，也是化解宿怨的出口。</p>
+        <h3>當地人的說法</h3>
+        <p>各地報導最常提到的理由是祛疾避疫：不打石戰，地方就會有瘟疫，五穀也收成不好。鈴木清一郎在屏東佳冬記下三種起源說法：放牛孩童的遊戲；一位久病的瘧疾患者抱病參戰、大汗淋漓後痊癒，從此參加的人越來越多；以及五月初五草木皆可入藥，受了傷隨手就能找到草藥。</p>
+        <h3>傷不記仇，輸不記恨</h3>
+        <p>石戰常被誤認為分類械鬥，但佳冬耆老指出，真正的械鬥不會用這麼簡陋的石頭，也不必挑在端午。對陣雙方常是朋友對朋友、親戚對親戚、丈人對女婿，規矩是「傷不記仇，輸不記恨」；東港一帶甚至相信受傷能帶來好運。佳冬的勝方可以進到敗方村落大吃粽子和酒菜，被抓到的輸家要被脫褲羞辱。</p>
+        <p>暴力是真的，但被節日、場地與這些規範框在儀式之內。這是石戰作為集體歡騰的社會狂歡、而不是武裝械鬥的關鍵。</p>
+        <h3>被取締的「蒙昧惡俗」</h3>
+        <p>在日本殖民政府看來，石戰的群眾動員規模與暴力本質，是很可能失控為叛亂暴動的武裝演習，於是稱之為「蒙昧惡俗」，由警察和保甲取締。官方一面取締，一面以運動會取而代之：臺中神岡在 1917 年把石戰改成以賽跑為主的運動會，屏東佳冬則在警方監督下改成對抗競技。石戰在 1920 年代前後逐漸式微，太平洋戰爭爆發、青壯男子被徵召從軍以後便消失了。</p>
+      </section>
+      <section class="pane" id="pane-rank" role="tabpanel" aria-labelledby="tab-rank" hidden>
+        <h3>本機戰績</h3>
+        <p class="small">記在這台裝置的瀏覽器裡，清除瀏覽資料就會消失。</p>
+        <div id="rankBox"></div>
+      </section>
+      <section class="pane" id="pane-clips" role="tabpanel" aria-labelledby="tab-clips" hidden>
+        <h3>剪報</h3>
+        <p class="small" id="clipCount"></p>
+        <div class="clips" id="clipBox"></div>
+      </section>
+      <section class="pane" id="pane-src" role="tabpanel" aria-labelledby="tab-src" hidden>
+        <h3>文獻</h3>
+        <p>鈴木清一郎 1934〈東港郡佳冬の石合戰と其の由來〉，《臺灣舊慣：冠婚葬祭と年中行事》，臺灣日日新報社，頁 432–433。</p>
+        <p>楊佳霖 2011〈從祛疾避疫到狂歡暴動的「蒙昧惡俗」：論臺灣端午節的石戰習俗〉，《臺灣文獻》第 62 卷第 2 期，頁 245–274。</p>
+        <p>賴襄南 1942〈鹿港の石合戰〉，《民俗臺灣》第 2 卷第 5 號。</p>
+        <p class="small">註：文獻未載成文石戰規則，各地有所不同。</p>
+        <h3>遊戲</h3>
+        <p>玩法來自 1998 年經典 <span class="en" lang="en">Flash game</span>「雪球大戰（<span class="en" lang="en">SnowCraft</span>）」。</p>
+        <h3>視覺</h3>
+        <p>西部遊戲《<span class="en" lang="en">12 is Better Than 6</span>》、東陽堂 1895 年《風俗畫報 臺灣征討圖繪》。</p>
+        <h3>音樂</h3>
+        <p>《8bit械鬥core_1》取樣自臺灣北管曲牌《風入松》、《急三槍》。</p>
+        <p>《8bit械鬥core_2》取樣自臺灣北管曲牌《番竹馬》。</p>
+      </section>
+    </article>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+let W = 960, H = 600;
+const G = 1100, AREA = 960 * 600;
+const RIV = 0.075, BANK = 0.135;
+const cv = document.getElementById('cv');
+const scene = document.createElement('canvas'); scene.width = W; scene.height = H;
+const ctx = scene.getContext('2d');
+const $ = id => document.getElementById(id);
+
+// Stone fights were fought surname against surname and village against village.
+// Rivals are drawn from places and families that show up in the records.
+const PLACES = ['水底寮', '北旗尾', '四張犁', '七張犁', '佳冬', '東港', '神岡', '豐原', '沙鹿', '清水', '梧棲', '大肚', '北屯', '斗六', '北港', '朴子', '鹿港', '嘉義'];
+const SURNAMES = ['施', '黃', '許', '陳', '林', '李', '王', '張', '蔡', '楊', '吳', '劉', '郭', '洪', '曾', '謝'];
+let nameKind = '庄', myName = '', foeName = '', nextFoe = '';
+const pickFrom = a => a[Math.floor(Math.random() * a.length)];
+function pickFoe() {
+  const pool = (nameKind === '庄' ? PLACES : SURNAMES).filter(n => n + nameKind !== myName && n + nameKind !== foeName);
+  return pickFrom(pool) + nameKind;
+}
+const TEAMS = {
+  shi: { name: '施氏', mark: ['施'], dark: true },
+  hx:  { name: '黃氏', mark: ['黃'], dark: false }
+};
+
+// ---------- geometry ----------
+const S = (x, y) => x / W + y / H;              // <1 foe side, >1 my side
+const calcNrm = () => { const a = 1 / W, b = 1 / H, l = Math.hypot(a, b); return { x: a / l, y: b / l }; };
+let NRM = calcNrm();
+const edge = (c, u) => ({ x: W * u * c, y: H * (1 - u) * c });
+function clampZone(team, p) {
+  let x = Math.max(18, Math.min(W - 18, p.x)), y = Math.max(60, Math.min(H - 26, p.y));
+  for (let k = 0; k < 3; k++) {
+    const s = S(x, y);
+    const lo = team === 'P' ? 1 + BANK : 0.1, hi = team === 'P' ? 1.93 : 1 - BANK;
+    if (s >= lo && s <= hi) break;
+    const target = s < lo ? lo : hi, g = NRM.x / W + NRM.y / H, kk = (target - s) / g;
+    x = Math.max(18, Math.min(W - 18, x + NRM.x * kk));
+    y = Math.max(60, Math.min(H - 26, y + NRM.y * kk));
+  }
+  return { x, y };
+}
+function rand(a, b) { return a + Math.random() * (b - a); }
+function gauss() { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+// ---------- state ----------
+let mode = 'title', mySide = 'shi', foeSide = 'hx';
+let players = [], enemies = [], fighters = [], tombs = [], stones = [], parts = [], texts = [], pebbles = [], blood = [], pools = [];
+let sel = null, level = 1, score = 0, hits = 0, best = 0, endT = 0, endWin = false, banner = null, marker = null;
+let time = 0, hudKey = '';
+// the run: upgrades carried from round to round, and the way it ends
+const UP0 = () => ({ eye: 0, big: 0, multi: 0, vigor: 0, bounce: 0, zong: 0, hat: 0, build: 0, people: 0, lead: 0, rally: 0, ash: 0, skip: 0, gun: 0, rest: 0 });
+let up = UP0(), choices = [], combo = 0, comboT = 0, stopT = 0, retries = 2, ashLeft = 0, rallyT = 3;
+let ending = null, tracer = null, flashes = [], shake = 0, cops = [];
+let roundHp0 = 1; // both sides' total strength when the round began, for the music's 催
+// When a round is decided the camera closes in on whoever threw the deciding stone and holds there; any click skips.
+const FIN_LEN = 2.8, FIN_IN = 0.6, FIN_Z = 2.3; // seconds in total, seconds to close in (in slow motion), zoom
+let finale = null, lastKO = {}, roundShownAt = 0, overShownAt = 0, noGuard = false;
+const fresh = t => !noGuard && performance.now() - t < 600; // a click that skipped the close-up must not land on what opens after it (noGuard: the test bot)
+function startFinale(win) {
+  const k = lastKO[win ? 'E' : 'P'], o = k && k.owner;
+  const who = o && fighters.includes(o) ? o : null, at = who || (o && o.crowd ? o : k) || { x: W / 2, y: H / 2 };
+  finale = { rt: 0, win, who, x: at.x, y: at.y, skip: false, done: false };
+  if (who && !who.down) { who.state = 'cheer'; who.stun = 0; who.power = 0; who.pickT = 0; who.kx = who.ky = 0; } // arms up
+  else if (o && o.crowd) o.crowd.thr = time + FIN_LEN + 1;                                                        // the onlooker keeps his throwing arm up
+}
+// ---------- 剪報 (achievements) and 戰績 (this device's scoreboard): two separate records, both kept in this browser only ----------
+const CLIPS = [
+  { id: 'heal', t: '傷不記仇', c: '敗陣後用「重來」把同一回打贏' },
+  { id: 'god', t: '端午石神', c: '連贏七回，沒用過重來' },
+  { id: 'three', t: '一石三鳥', c: '一顆石頭打中三個人' },
+  { id: 'ten', t: '連石中十', c: '連中十次' },
+  { id: 'ace', t: 'ACE', c: '一回內對手全是自己打倒的' },
+  { id: 'lob', t: '隔山打牛', c: '打中躲在墓碑後面的人' },
+  { id: 'clean', t: '毫髮無傷', c: '一回合我方沒有人被打中' },
+  { id: 'lone', t: '一人一庄', c: '只剩自己一人時贏下回合' },
+  { id: 'hats', t: '斗笠陣', c: '一回內用斗笠擋下五顆石頭' },
+  { id: 'crowd', t: '無聊！我要看到血流成河！', c: '場邊觀眾打倒三人' },
+  { id: 'bros', t: '兄弟誠濟', c: '落人升到最高級' },
+  { id: 'cata', t: '投石機', c: '散石升到最高級' },
+  { id: 'cruise', t: '巡弋飛彈', c: '目色升到最高級' },
+  { id: 'skip', t: '溪邊傳說', c: '考水披升到最高級', hidden: true },
+  { id: 'ban', t: '擲石禁止', c: '看到惡俗取締結局', hidden: true },
+  { id: 'nogun', t: '我有槍，我拿了嗎？', c: '獵槍出現後一直不拿，打到第十五回', hidden: true },
+];
+const store = {
+  get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (_) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} },
+};
+const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let clipsGot = store.get('lukang-stone-clips', {});
+let trk = { retries: 0, retryLevel: 0, crowdKO: 0 };           // this run: retries used, the round last retried, knockdowns by the crowd
+let rs = { mineKO: 0, otherKO: 0, taken: 0, hats: 0 };        // this round: knockdowns by you and by anyone else, hits we took, hats that saved us
+const clipQ = []; let clipBusy = false;
+function award(id) {
+  if (clipsGot[id] || mode === 'title' || trial) return;
+  clipsGot[id] = Date.now(); store.set('lukang-stone-clips', clipsGot);
+  clipQ.push(id); if (!clipBusy) nextClip();
+}
+function nextClip() {
+  const id = clipQ.shift(), el = $('clip');
+  if (!id) { clipBusy = false; return; }
+  clipBusy = true; el.querySelector('b').textContent = CLIPS.find(c => c.id === id).t;
+  el.classList.toggle('low', !$('ovEnd').hidden);
+  el.hidden = false; el.classList.remove('in', 'out'); void el.offsetWidth; el.classList.add('in'); sfx.page();
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.hidden = true; el.classList.remove('in', 'out'); nextClip(); }, 420); }, 2800);
+}
+// someone crouched behind a tombstone: just past it on the far side, as seen from our bank
+function behindTomb(f) {
+  return tombs.some(t => { const dx = f.x - t.x, dy = f.y - t.y, back = -(dx * NRM.x + dy * NRM.y), side = Math.abs(dx * NRM.y - dy * NRM.x); return back > 6 && back < 50 && side < t.hw + 10; });
+}
+let runs = store.get('lukang-stone-runs', []), run = null;
+function runStart() { run = trial ? null : { id:Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: myName, side: mySide, end: '' }; }
+function runSave(end) { // the run's latest standing; a record is kept even if the page is closed mid-run
+  if (!run) return;
+  if (end !== undefined) run.end = end;
+  const rec = { id: run.id, name: run.name, side: run.side, round: level, score, hits, end: run.end, nogun: level >= 6 && !up.gun, date: Date.now() };
+  runs = runs.filter(r => r.id !== rec.id).concat([rec]).sort((a, b) => b.score - a.score || b.round - a.round || a.date - b.date).slice(0, 20);
+  store.set('lukang-stone-runs', runs);
+}
+const runRank = () => run ? runs.findIndex(r => r.id === run.id) + 1 : 0;
+function renderRank() {
+  const box = $('rankBox');
+  if (!runs.length) { box.innerHTML = '<p class="small">還沒有戰績。打完一回就會記上。</p>'; return; }
+  box.innerHTML = '<table class="rank"><thead><tr><th>名次</th><th>陣</th><th>回</th><th class="s">分數</th><th class="s hx">命中</th><th>結局</th><th>日期</th></tr></thead><tbody>' +
+    runs.slice(0, 10).map((r, i) => {
+      const d = new Date(r.date), marks = (r.end ? '<span class="st">' + esc(r.end) + '</span>' : '') + (r.nogun ? '<span class="st">無槍</span>' : '');
+      return '<tr' + (run && r.id === run.id ? ' class="me"' : '') + '><td class="n">' + cnum(i + 1) + '</td><td><span class="sd' + (r.side === 'shi' ? ' k' : '') + '"></span><span class="nm">' + esc(r.name) + '</span></td>' +
+        '<td>' + cnum(r.round) + '</td><td class="s">' + r.score + '</td><td class="s hx">' + r.hits + '</td><td>' + (marks || '—') + '</td><td class="dt">' + (d.getMonth() + 1) + '/' + d.getDate() + '</td></tr>';
+    }).join('') + '</tbody></table>';
+}
+function renderClips() {
+  $('clipCount').textContent = '見報 ' + CLIPS.filter(c => clipsGot[c.id]).length + ' / ' + CLIPS.length;
+  $('clipBox').innerHTML = CLIPS.map((c, i) => {
+    const at = clipsGot[c.id];
+    if (!at) return '<div class="clipc off"><h4>' + esc(c.t) + '</h4><p>' + (c.hidden ? '？？？' : esc(c.c)) + '</p><span class="dt">尚未見報</span></div>'; // hidden ones keep their condition to themselves
+    const d = new Date(at), r = ((i * 37) % 7 - 3) * 0.45;
+    return '<div class="clipc" style="--r:' + r.toFixed(2) + 'deg"><h4>' + esc(c.t) + '</h4><p>' + esc(c.c) + '</p><span class="dt">' + d.getFullYear() + '.' + (d.getMonth() + 1) + '.' + d.getDate() + ' 見報</span></div>';
+  }).join('');
+}
+// after the stamp the picture holds until the player clicks; the closing sheet ignores clicks for a moment so a double click can't restart the game
+const GO_AT = 7;
+let endShownAt = 0;
+try { best = +localStorage.getItem('lukang-stone-best') || 0; } catch (_) {}
+
+function mkFighter(team, side, x, y, hp) {
+  return { team, side, x, y, tx: x, ty: y, hp, maxHp: hp, state: 'idle', power: 0, wind: 0, cool: 0, stun: 0,
+           anim: Math.random() * 10, pickT: 0, pickDur: 0.4, prepT: 0, ph: Math.random(), face: team === 'P' ? -1 : 1, down: false, downT: 0, kx: 0, ky: 0, flash: 0,
+           throwT: 0, target: null, stuck: 0, wounds: [], drip: 0, manualT: 0, ai: { t: rand(1.4, 2.8) } };
+}
+
+// Difficulty. Rounds 1–5 are the same for everyone. Until you have seen the gun ending, the foes keep growing every
+// round after that, so the gun looks tempting. Once 擲石禁止 is in your clippings, the same growth comes only once every
+// five rounds after round 5: rounds 6–9 play like round 5, 10–14 like round 6, 15–19 like round 7, and so on.
+// From round 20 the numbers grow slower and the foes get tougher instead: one more man every ten rounds (13, 14, 15)
+// and one more 氣力 every five (4, 5, 6, the same as a fully built 漢草), so late rounds stay long and bloody without
+// a barrage you cannot answer. A run can go on as long as your build keeps up; that is the point, not a flaw.
+// By round 36 nearly every 本事 is unlocked (the last 落人 levels come by round 40), so from round 37 the foes get sharper every round
+// instead of tougher (fury): they pick up, wind up and throw sooner, throw more often, lead you fully and aim tighter,
+// and one more joins every other round (15 at round 37, 20 at 47, up to MAXFOE). Each round past 36 also deals you
+// 添香油, so the run ends only once losing a round is the rule rather than the exception.
+const MAXFOE = 30;
+let stepped = false, trial = false, foe = null, dl = 1; // this round's foes; dl is the round whose throwing they copy; trial: the test door (newGame)
+const paceOf = lv => !stepped || lv <= 5 ? lv : 5 + Math.floor((lv - 5) / 5);
+const foeCount = lv => Math.min(14, 4 + lv + Math.floor(lv / 4));        // round 1: five against five; then 6, 7, 9, 10, 11 …
+const foeHp = lv => lv <= 5 ? 2 : 3;                                      // tougher from round 6
+const foeHatShare = lv => lv >= 3 ? Math.min(0.45, 0.15 * (lv - 2)) : 0;  // from round 3 some wear bamboo hats
+const foeBigShare = lv => lv >= 6 ? Math.min(0.5, 0.25 * (lv - 5)) : 0;   // from round 6 some throw big stones
+function foeAt(lv) {
+  const d = paceOf(lv), late = stepped && lv >= 20, fury = stepped ? Math.max(0, lv - 36) : 0;
+  const n = !late ? foeCount(d) : fury ? Math.min(MAXFOE, 14 + Math.ceil(fury / 2)) : Math.min(15, 11 + Math.floor(lv / 10));
+  return { n, hp: late ? Math.min(6, 4 + Math.floor((lv - 20) / 5)) : foeHp(d), hat: foeHatShare(d), big: foeBigShare(d), ai: d, fury };
+}
+// What the round-won sheet says about the next round's foes when they get harder.
+function foeNews(a, b) {
+  const more = k => b[k] > a[k] + 1e-9;
+  if (!a.hat && b.hat) return '對方開始戴斗笠擋石頭。';
+  const tough = more('hp'), big = !a.big && b.big;
+  if (tough || big) return tough && big ? '對方更耐打，也開始撿大粒石。' : tough ? '對方更耐打了。' : '對方開始撿大粒石。';
+  if (stepped && (more('hat') || more('big'))) return '對方' + (more('hat') && more('big') ? '戴斗笠、撿大粒石' : more('hat') ? '戴斗笠' : '撿大粒石') + '的人更多了。';
+  if (!a.fury && b.fury) return '對方的好手都下場了，丟得更勤、更準。';
+  if (b.fury && more('n')) return '對方又多來了人，丟得更勤、更準了。';
+  return (more('ai') || more('fury')) && (stepped || b.n === a.n) ? '對方丟得更勤、更準了。' : '';
+}
+const PSTART = [[1.28, 0.3], [1.28, 0.5], [1.28, 0.7], [1.5, 0.42], [1.5, 0.58], [1.5, 0.26], [1.5, 0.74], [1.7, 0.5],
+  [1.39, 0.4], [1.39, 0.6], [1.62, 0.44], [1.62, 0.56]]; // five to start, up to seven more from 落人
+// Test door: a side named 重斌大帝庄, started from the title, begins at round 36 with every 本事 at the top but 落人 Lv3, on the
+// post-擲石禁止 curve, to try the late game without playing 35 rounds first. Such a run earns no clippings and leaves
+// no record or best score; 從頭開始 or 換邊 after it is an ordinary run from round 1.
+function newGame(side, fromTitle) {
+  mySide = side; foeSide = side === 'shi' ? 'hx' : 'shi';
+  trial = !!fromTitle && myName === '重斌大帝庄'; stepped = trial || !!clipsGot.ban;
+  trk = { retries: 0, retryLevel: 0, crowdKO: 0 }; runStart();
+  foeName = ''; foeName = pickFoe();
+  level = trial ? 36 : 1; score = 0; hits = 0;
+  up = UP0(); combo = 0; comboT = 0; stopT = 0; retries = 2; ending = null; tracer = null; flashes = []; shake = 0; cops = [];
+  if (trial) { for (const k in UPG) if (k !== 'gun' && k !== 'rest') up[k] = UPG[k].max; up.people = 3; } // as a real run at 36: four 落人 still to come
+  CROWD = buildCrowd();
+  players = PSTART.slice(0, 5 + up.people).map(([c, u]) => { const p = edge(c, u); return mkFighter('P', mySide, p.x, p.y, 3 + up.build); });
+  startRound();
+}
+function startRound() {
+  stones = []; parts = []; texts = []; pebbles = []; blood = []; pools = []; endT = 0; marker = null; clearStain(); finale = null; lastKO = {};
+  foe = foeAt(level); dl = foe.ai;
+  const n = foe.n, hp = foe.hp;
+  enemies = [];
+  for (let i = 0; i < n; i++) {
+    const u = 0.08 + (i + 0.5) / n * 0.84, c = (i % 2 ? 0.62 : 0.42) + rand(-0.04, 0.04);
+    const p = clampZone('E', edge(c, u));
+    const e = mkFighter('E', foeSide, p.x, p.y, hp);
+    e.ai.t = rand(2.2, 3.8) - Math.min(1, dl * 0.08);
+    e.hat = Math.random() < foe.hat ? 1 : 0;
+    e.bigStone = Math.random() < foe.big;
+    enemies.push(e);
+  }
+  players.forEach((p, i) => {
+    const q = clampZone('P', edge(PSTART[i % PSTART.length][0], PSTART[i % PSTART.length][1]));
+    p.hat = up.hat; p.regen = 0;
+    Object.assign(p, { x: q.x, y: q.y, tx: q.x, ty: q.y, state: p.down ? 'idle' : 'idle', power: 0, cool: 0, stun: 0, kx: 0, ky: 0, flash: 0, face: -1 });
+  });
+  fighters = players.concat(enemies);
+  for (const f of fighters) { f.prepT = rand(1.3, 2.1); f.pickT = 0; }
+  ashLeft = up.ash; rallyT = rand(2.5, 3.5);
+  rs = { mineKO: 0, otherKO: 0, taken: 0, hats: 0 };
+  if (level >= 15 && !up.gun) award('nogun');
+  if (level > 1) runSave();
+  for (const p of players) p.ai.t = rand(2.2, 4);
+  makeTombs();
+  sel = players.find(p => !p.down) || null;
+  shouts = []; lastHit = null; fever = Math.max(fever, 0.45); shoutT = 1.2; skipper = null;
+  const gear = (foe.hat ? '・有人戴斗笠' : '') + (foe.big ? '・有人撿大粒石' : '');
+  banner = { text: '第 ' + level + ' 回', sub: myName + ' 對 ' + foeName + (up.gun ? '・你按住的人拿著獵槍' : '・' + n + ' 人' + gear), t: 0, dur: 2 };
+  roundHp0 = fighters.reduce((a, f) => a + f.maxHp, 0) || 1;
+  if (AC) music.start((level - 1) % 2); else sfx.drum(3); // the 起鼓 opens the round; odd rounds 急三槍, even rounds the second tune
+  hudKey = '';
+}
+// Grave kinds: big = 墓龜 with 墓手 wings; small = low mound; broken = tilted old tablet; houtu = 后土 stone.
+// hw = half-width that blocks stones and people, ht = height a stone must clear.
+const KINDS = { big: { hw: 22, ht: 30, r: 46 }, small: { hw: 15, ht: 21, r: 34 }, broken: { hw: 14, ht: 17, r: 32 }, houtu: { hw: 9, ht: 22, r: 26 } };
+function addTomb(team, kind, p) {
+  const K = KINDS[kind];
+  tombs.push({ x: p.x, y: p.y, team, kind, hw: K.hw, ht: K.ht, r: K.r, seed: Math.random(),
+    paper: kind !== 'houtu' && Math.random() < 0.65 });
+}
+function makeTombs() {
+  tombs = [];
+  const place = (team, n, lo, hi, kinds) => {
+    let tries = 0;
+    while (n > 0 && tries++ < 900) {
+      const u = rand(0.04, 0.96), c = rand(lo, hi), p = edge(c, u);
+      if (p.x < 40 || p.x > W - 40 || p.y < 70 || p.y > H - 34) continue;
+      const kind = kinds[n % kinds.length], r = KINDS[kind].r;
+      if (tombs.some(t => Math.abs(t.x - p.x) < t.r + r && Math.abs(t.y - p.y) < 34)) continue;
+      if (fighters.some(f => Math.hypot(f.x - p.x, f.y - p.y) < 40)) continue;
+      if (Math.hypot(p.x - 50, p.y - 140) < 70 || Math.hypot(p.x - (W - 50), p.y - (H - 40)) < 70) continue; // flags
+      addTomb(team, kind, p); n--;
+    }
+  };
+  const mix = ['big', 'small', 'broken', 'small', 'big', 'small', 'big', 'broken', 'small', 'big'];
+  place('E', 1, 0.2, 0.45, ['houtu']);
+  place('P', 1, 1.5, 1.75, ['houtu']);
+  place('E', 10, 0.3, 0.84, mix);
+  place('P', 9, 1.16, 1.72, mix);
+}
+
+// The crowd: rows packed along the top and bottom edges.
+// Old and young came to watch, and they wanted blood.
+function buildCrowd() {
+  const R = mulberry(4242), out = [];
+  const add = (x, y, row, front) => {
+    if (Math.abs(S(x, y) - 1) < RIV + 0.035) return; // nobody stands in the creek
+    out.push({ x, y, row, front, st: Math.floor(R() * 3), kid: R() < 0.18, bun: R() < 0.3, hat: front && R() < 0.28, stick: R() < 0.1,
+      ph: R() * 6, face: R() < 0.5 ? -1 : 1, mood: R(), sp: 0.8 + R() * 0.6 });
+  };
+  for (const [y, gap, row, front] of [[13, 15, 0.62, false], [25, 16, 0.7, false], [39, 18, 0.8, true]])
+    for (let x = 6 + R() * gap; x < W - 6; x += gap + R() * 8) add(x, y + R() * 3, row, front);
+  for (const [y, gap, row, front] of [[H - 16, 16, 0.72, false], [H - 3, 18, 0.82, true]])
+    for (let x = 6 + R() * gap; x < W - 6; x += gap + R() * 8) add(x, y - R() * 3, row, front);
+  return out;
+}
+let CROWD = buildCrowd();
+let cheer = 0, fever = 0.25, lastHit = null, shouts = [], shoutT = 3;
+const SHOUTS = ['掔落！', '拍！', '掔落！', '閣來！', '好！'];
+const BLOODY = ['掔落！', '見血！', '好！', '閣來！'];
+// a few of the onlookers nearest the spot shout something
+function shout(x, y, n, words) {
+  const near = CROWD.filter(c => c.x > 4 && c.x < W - 4).sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y)).slice(0, 12);
+  for (let i = 0; i < n && near.length; i++) {
+    const c = near.splice(Math.floor(Math.random() * near.length), 1)[0];
+    let sy = c.y < H / 2 ? Math.max(20, c.y - 40 * c.row) + 10 : c.y - 52 * c.row;
+    const sx = Math.max(34, Math.min(W - 34, c.x + rand(-6, 6)));
+    for (let k = 0; k < 4 && shouts.some(o => o.t < 1 && Math.abs(o.x - sx) < 62 && Math.abs(o.y - o.t * 16 - sy) < 18); k++) sy += c.y < H / 2 ? 18 : -18;
+    shouts.push({ x: sx + (c.ox || 0), y: sy + (c.oy || 0), txt: words[Math.floor(Math.random() * words.length)], t: 0, rot: rand(-0.18, 0.18) });
+  }
+}
+
+// ---------- audio ----------
+let AC = null, muted = false, noiseBuf = null;
+let murmur = null;
+function audioInit() {
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) { return; } }
+  if (AC.state === 'suspended') AC.resume();
+  if (!noiseBuf) { noiseBuf = AC.createBuffer(1, AC.sampleRate * 0.6, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  if (!murmur) { // a long loop of filtered noise, gently swelling, under everything
+    const len = AC.sampleRate * 4, buf = AC.createBuffer(1, len, AC.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (0.7 + 0.3 * Math.sin(i / AC.sampleRate * 2.3) * Math.sin(i / AC.sampleRate * 0.9));
+    const src = AC.createBufferSource(); src.buffer = buf; src.loop = true;
+    const f = AC.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 560; f.Q.value = 0.7;
+    const g = AC.createGain(); g.gain.value = 0;
+    src.connect(f).connect(g).connect(AC.destination); src.start();
+    murmur = { g, f };
+  }
+}
+function murmurLevel() {
+  if (!murmur || !AC) return;
+  const v = muted ? 0 : ending ? 0.11 * Math.max(0, 1 - ending.t / 3.5) : (mode === 'play' ? 0.018 + 0.07 * fever : 0.01);
+  murmur.g.gain.setTargetAtTime(v, AC.currentTime, 0.35);
+  murmur.f.frequency.setTargetAtTime(480 + 380 * fever, AC.currentTime, 0.5);
+}
+function tone(type, f0, f1, dur, gain, delay = 0) {
+  if (!AC || muted) return;
+  const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur + 0.02);
+}
+function noise(dur, ftype, freq, gain, delay = 0, f1) {
+  if (!AC || muted || !noiseBuf) return;
+  const t = AC.currentTime + delay, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  s.buffer = noiseBuf; f.type = ftype; f.frequency.setValueAtTime(freq, t); if (f1) f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f).connect(g).connect(AC.destination); s.start(t); s.stop(t + dur + 0.02);
+}
+const sfx = {
+  whoosh() { noise(0.16, 'bandpass', 1400, 0.12, 0, 400); },
+  hit() { tone('sine', 150, 50, 0.2, 0.5); noise(0.07, 'lowpass', 900, 0.25); },
+  clack() { tone('triangle', 1500, 900, 0.08, 0.22); tone('square', 2600, 2200, 0.03, 0.04); },
+  crowd() { const k = 0.6 + fever; noise(0.8, 'bandpass', 700, 0.07 * k, 0.03, 1150); noise(0.6, 'bandpass', 1500, 0.04 * k, 0.08, 900); },
+  bang() { noise(0.4, 'lowpass', 2200, 0.9, 0, 260); tone('sine', 95, 32, 0.45, 0.9); noise(1.1, 'bandpass', 480, 0.14, 0.22, 180); },
+  cock() { tone('square', 1900, 1700, 0.02, 0.05); tone('square', 1300, 1150, 0.03, 0.06, 0.09); },
+  ring() { tone('sine', 2650, 2550, 2.6, 0.03, 0.15); tone('sine', 52, 44, 1.6, 0.25, 0.05); },
+  whistle(d = 0) { // a police whistle: shrill, with the fast trill of the pea inside
+    if (!AC || muted) return;
+    const t = AC.currentTime + d, o = AC.createOscillator(), lfo = AC.createOscillator(), lg = AC.createGain(), g = AC.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(2850, t);
+    lfo.type = 'square'; lfo.frequency.setValueAtTime(26, t); lg.gain.setValueAtTime(160, t);
+    lfo.connect(lg); lg.connect(o.frequency);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05, t + 0.03); g.gain.setValueAtTime(0.05, t + 0.5); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.65);
+    o.connect(g).connect(AC.destination); o.start(t); lfo.start(t); o.stop(t + 0.7); lfo.stop(t + 0.7);
+  },
+  stamp() { tone('sine', 70, 38, 0.3, 0.7); noise(0.09, 'lowpass', 320, 0.35); },
+  panic() { noise(1.5, 'bandpass', 1900, 0.13, 0.12, 2700); noise(1.1, 'bandpass', 1100, 0.11, 0.25, 1600); noise(1.3, 'bandpass', 700, 0.1, 0.05, 900); },
+  plip(n) { tone('sine', 820 + n * 90, 1350 + n * 90, 0.07, 0.09); noise(0.05, 'highpass', 3000, 0.04); },
+  page() { noise(0.24, 'bandpass', 2600, 0.07, 0, 900); noise(0.07, 'highpass', 4200, 0.025, 0.14); },
+  roar() { noise(1.6, 'bandpass', 600, 0.16, 0.05, 1300); noise(1.2, 'bandpass', 1700, 0.07, 0.12, 1000); noise(0.9, 'lowpass', 400, 0.08, 0.1); },
+  splash() { noise(0.3, 'bandpass', 900, 0.1, 0, 260); },
+  pick() { noise(0.07, 'highpass', 2200, 0.06); tone('triangle', 700, 420, 0.05, 0.05, 0.02); },
+  thud() { tone('sine', 95, 55, 0.09, 0.14); noise(0.05, 'lowpass', 500, 0.06); },
+  drum(n) { for (let i = 0; i < n; i++) { tone('sine', 80, 42, 0.38, 0.7, i * 0.3); noise(0.1, 'lowpass', 260, 0.3, i * 0.3); } },
+  win() { this.drum(2); tone('triangle', 660, 660, 0.5, 0.12, 0.6); tone('triangle', 990, 990, 0.6, 0.08, 0.75); },
+  lose() { tone('sine', 120, 60, 0.9, 0.4); tone('triangle', 220, 140, 0.8, 0.08, 0.1); }
+};
+// ---------- music: two 8-bit takes on beiguan recordings, built on their gongs and drums ----------
+// Song 1, 急三槍 (odd rounds): steady 2/4 drive. 鈔 on every beat, 通鼓 on the eighths with ghost notes,
+//   小鑼 on the off-beats in alternating bars, 大鑼 at phrase heads, and a 催 roll that speeds into a crash.
+//   Lead pulses on 士 like the recording's reed. 1.5x the recording's ~110 bpm.
+// Song 2 (even rounds): a 4/4 cycle whose recording keeps speeding up, so here the whole round is one long 催:
+//   it opens slow and sparse, and as the fight goes on the tempo climbs and the gongs and drums fill in,
+//   ending on the syncopated 1, &2, 3, &4 鑼 of the recording's fast sections. The lead holds long tones.
+//   1.5x the recording's ~90 to ~120 bpm.
+// Both are in the recordings' mode, centred on 士 (B♭ here). Melodies are written in that style, not transcribed.
+const music = (() => {
+  const VOL = 0.16;
+  const N = { 仜: 65, 合: 68, 士: 70, 乙: 72, 上: 73, 尺: 75, 工: 77, 六: 80, 五: 82 };
+  const ORDER = [65, 68, 70, 72, 73, 75, 77, 80, 82, 85];
+  const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+  const above = m => ORDER.find(x => x > m) || m + 2;
+  const rootOf = m => [N.上, N.尺].includes(m) ? 49 : [N.工, N.六, N.五].includes(m) ? 53 : 46;
+  // a bar of melody: tokens of 工尺 name + length in sixteenths; "-" is a rest
+  function parse(bar) { const out = []; bar.replace(/(\D)(\d+)/g, (_, n, l) => { out.push([n === '-' ? 0 : N[n], +l]); }); return out; }
+  const hits = (o, i) => o[i] || 0;
+
+  // ---- song 1: 急三槍 ----
+  function song1() {
+    const A = ['士2士2士2上2', '乙1上1士2合2士2', '士2士2尺1上1士2', '士6-2', '上2尺2工2尺1上1', '士2上2乙1上1士2', '合2仜2合1士1合2', '士6-2'];
+    const B = ['工2工2工2六2', '五2六1工1尺2工2', '六2五2六1工1尺2', '工6-2', '尺2上2尺1工1尺2', '上2乙1上1士2上2', '尺1上1士1合1士2上2', '士6-2'];
+    const C = ['士1士1士2士1士1士2', '上1上1上2士1士1士2', '尺1尺1尺2上1上1乙2', '士2上2士4'];
+    const R = ['五1六1五1六1五1六1五1六1', '五1六1五1六1五4'];
+    const steps = [];
+    const sec = (bars, kind) => bars.forEach((b, bi) => {
+      const notes = parse(b), first = notes[0][0] || N.士, root = rootOf(first);
+      const base = steps.length; for (let i = 0; i < 8; i++) steps.push({});
+      let at = 0;
+      for (const [m, l] of notes) { if (m) { steps[base + at].lead = [m, l]; if (kind === 'A2' || kind === 'C') steps[base + at].l2 = [m - 12, l]; } at += l; }
+      [root, 0, root, 0, root + 7, 0, root + 12, 0].forEach((m, i) => { if (m && (kind !== 'R' || i % 4 === 0)) steps[base + i].bass = [kind === 'R' ? root : m, 1.7]; });
+      for (let i = 0; i < 8; i++) {
+        const s = steps[base + i];
+        if (kind === 'R') { // 催: drum on every sixteenth, louder and faster
+          const k = (bi * 8 + i) / 16; s.drum = 0.45 + 0.55 * k; s.accel = 1 + 0.45 * k;
+          if (i % 4 === 0 || (bi === 1 && i % 2 === 0)) s.cym = 0.5 + 0.4 * k;
+          continue;
+        }
+        if (i % 4 === 0) s.cym = i === 0 ? 1 : 0.75;
+        if (i % 2 === 0) s.drum = i === 0 ? 1 : 0.7;
+        else if (i === (bi % 2 ? 3 : 7)) s.drum = 0.35;
+        if (kind === 'C') { if (bi % 2 && i % 2 === 0) s.sg = i === 0 ? 0.8 : 0.65; if (!(bi % 2) && i === 6) s.sg = 0.8; }
+        else if (i === (bi % 2 ? 2 : 6)) s.sg = 0.75;
+        if (i === 0 && bi % 4 === 0) s.bg = kind === 'C' ? 1 : 0.8;
+      }
+    });
+    sec(A, 'A'); sec(A, 'A2'); sec(B, 'B'); sec(C, 'C'); sec(C, 'C'); sec(R, 'R');
+    steps[0].bg = 1; steps[0].cym = 1; // each pass starts on a crash
+    const intro = Array.from({ length: 8 }, (_, i) => ({ drum: 0.4 + 0.08 * i, cym: i === 6 ? 0.6 : 0, accel: 1 + 0.03 * i }));
+    return { bpm: [165, 185], steps, intro, sg: [1050, 820] };
+  }
+
+  // ---- song 2: the long 催 ----
+  function song2() {
+    const M = ['士14上1乙1', '合8士8', '上12尺2上2', '士16', '工8尺4上4', '尺12上2乙2', '士8合8', '士16',
+               '六16', '五8六8', '工12六2工2', '尺16', '上8尺8', '工12尺4', '上8乙4上4', '士16', '-16', '-16'];
+    // percussion per level (0 sparse and slow, 2 the fast sections), by sixteenth in a 4/4 bar, from the recording
+    const P = [
+      { cym: { 0: 1, 4: 0.6, 8: 0.7, 11: 0.35, 12: 0.9 }, drum: { 0: 0.9, 2: 0.3, 4: 0.6, 8: 0.8, 12: 0.7, 14: 0.4 }, sg: { 0: 0.9, 12: 0.8 } },
+      { cym: { 0: 1, 4: 0.6, 8: 0.6, 11: 0.4, 12: 0.75 }, drum: { 0: 0.9, 2: 0.5, 4: 0.45, 8: 0.8, 10: 0.5, 12: 0.8, 14: 0.55 }, sg: { 0: 0.9, 4: 0.5, 8: 0.6, 12: 0.9, 14: 0.45 } },
+      { cym: { 0: 1, 4: 0.6, 8: 0.9, 12: 0.6 }, drum: { 0: 0.95, 2: 0.35, 6: 0.75, 8: 0.8, 10: 0.6, 12: 0.7, 14: 0.7 }, sg: { 0: 0.9, 6: 0.75, 8: 0.7, 10: 0.5, 14: 0.9 } },
+    ];
+    const steps = [];
+    let prev = 0, held = N.士, root = 46;
+    M.forEach((b, bi) => {
+      const notes = parse(b), brk = !notes[0][0], base = steps.length;
+      if (!brk) root = rootOf(notes[0][0]);
+      for (let i = 0; i < 16; i++) steps.push({ perc: [{}, {}, {}], l2s: [null, null, null], basses: [null, null, null] });
+      let at = 0;
+      for (const [m, l] of notes) { if (m) { steps[base + at].lead = [m, l, prev]; prev = m; } at += l; }
+      for (let i = 0; i < 16; i++) {
+        const s = steps[base + i];
+        if (s.lead) held = s.lead[0];
+        for (let lv = 0; lv < 3; lv++) {
+          const p = P[brk ? Math.max(1, lv) : lv], q = s.perc[lv];
+          q.cym = hits(p.cym, i); q.drum = hits(p.drum, i); q.sg = hits(p.sg, i);
+          if (i === 0 && (bi % 2 === 0 || lv === 2)) q.bg = bi % 8 === 0 ? 1 : 0.75;
+          if (brk && bi === M.length - 1 && i >= 12) { q.drum = 0.55 + 0.12 * (i - 12); q.cym = i === 15 ? 0.7 : q.cym; } // roll back into the tune
+          if (brk && i % 4 === 2) q.sg = Math.max(q.sg, 0.55);
+          if (brk) continue;
+          // heterophony an octave down: quarters, then eighths, then eighths flicking to the note above
+          if (lv === 0 && i % 4 === 0) s.l2s[0] = [held - 12, 4];
+          if (lv === 1 && i % 2 === 0) s.l2s[1] = [held - 12, 2];
+          if (lv === 2 && i % 2 === 0) s.l2s[2] = [(i % 4 === 2 ? above(held) : held) - 12, 2];
+          // bass: half notes, then quarters, then eighths
+          if (lv === 0 && i % 8 === 0) s.basses[0] = [root, 6];
+          if (lv === 1 && i % 4 === 0) s.basses[1] = [[root, root + 7, root, root + 12][i / 4], 3];
+          if (lv === 2 && i % 2 === 0) s.basses[2] = [[root, root, root + 7, root + 7, root, root, root + 12, root + 7][i / 2], 1.7];
+        }
+        s.bar = i === 0;
+      }
+    });
+    // 起鼓: one gong, then drum strokes gathering speed
+    const intro = Array.from({ length: 16 }, (_, i) => ({ bg: i === 0 ? 1 : 0, cym: i === 0 ? 0.8 : 0, drum: { 8: 0.5, 11: 0.55, 13: 0.6, 14: 0.7, 15: 0.85 }[i] || 0 }));
+    return { bpm: [135, 180], steps, intro, sg: [880, 700] };
+  }
+  const SONGS = [song1(), song2()];
+
+  // ---- 8-bit voices ----
+  const bufs = new WeakMap();
+  function noiseBufs(c) {
+    let b = bufs.get(c); if (b) return b;
+    const mk = (short, period) => { // NES-style LFSR noise; short mode rings metallic like a gong
+      const len = c.sampleRate, buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+      let r = 1, v = 1;
+      for (let i = 0; i < len; i++) {
+        if (i % period === 0) { const fb = (r & 1) ^ ((r >> (short ? 6 : 1)) & 1); r = (r >> 1) | (fb << 14); v = (r & 1) ? -1 : 1; }
+        d[i] = v;
+      }
+      return buf;
+    };
+    const pulse = d => { const n = 48, re = new Float32Array(n), im = new Float32Array(n); for (let k = 1; k < n; k++) { re[k] = Math.sin(2 * Math.PI * k * d) / (Math.PI * k); im[k] = (1 - Math.cos(2 * Math.PI * k * d)) / (Math.PI * k); } return c.createPeriodicWave(re, im); };
+    b = { hiss: mk(false, 2), metal: mk(true, 9), gong: mk(true, 23), p25: pulse(0.25), p12: pulse(0.125) };
+    bufs.set(c, b); return b;
+  }
+  function env(c, t, peak, dur, dest) { const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); g.connect(dest); return g; }
+  function noise(c, dest, t, buf, rate, type, freq, peak, dur, q) {
+    const s = c.createBufferSource(); s.buffer = buf; s.loop = true; s.playbackRate.value = rate;
+    const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; if (q) f.Q.value = q;
+    s.connect(f).connect(env(c, t, peak, dur, dest)); s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.02);
+  }
+  function osc(c, dest, t, wave, f0, f1, peak, dur, slide) {
+    const o = c.createOscillator(); if (typeof wave === 'string') o.type = wave; else o.setPeriodicWave(wave);
+    o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + (slide || dur));
+    o.connect(env(c, t, peak, dur, dest)); o.start(t); o.stop(t + dur + 0.02); return o;
+  }
+  const kit = {
+    cym(c, d, t, v) { const b = noiseBufs(c); noise(c, d, t, b.hiss, 1, 'highpass', 6500, 0.33 * v, v > 0.9 ? 0.32 : 0.13); noise(c, d, t, b.metal, 1.6, 'bandpass', 5200, 0.12 * v, 0.1, 3); },
+    drum(c, d, t, v) { osc(c, d, t, 'triangle', 190, 72, 0.9 * v, 0.13, 0.08); noise(c, d, t, noiseBufs(c).hiss, 0.25, 'lowpass', 1500, 0.22 * v, 0.035); },
+    sg(c, d, t, v, f) { const b = noiseBufs(c); osc(c, d, t, b.p12, f[0], f[1], 0.11 * v, 0.24, 0.16); noise(c, d, t, b.metal, 0.55 * f[0] / 1050, 'bandpass', 2300 * f[0] / 1050, 0.22 * v, 0.2, 4); },
+    bg(c, d, t, v) { const b = noiseBufs(c); noise(c, d, t, b.gong, 0.32, 'lowpass', 1100, 0.42 * v, 1.5); osc(c, d, t, b.p12, 196, 186, 0.08 * v, 1.1); noise(c, d, t, b.hiss, 0.5, 'bandpass', 3000, 0.12 * v, 0.5, 1); },
+  };
+  // a reed-like note: long notes get a grace note from above (or slide in from the last note) and a widening vibrato
+  function lead(c, d, t, m, len, step, wave, peak, from) {
+    const dur = len * step * 0.92, f = hz(m), o = c.createOscillator(), g = c.createGain();
+    o.setPeriodicWave(wave);
+    if (from && from !== m) { o.frequency.setValueAtTime(hz(from), t); o.frequency.exponentialRampToValueAtTime(f, t + 0.07); }
+    else if (len >= 4 && from === undefined) { o.frequency.setValueAtTime(hz(above(m)), t); o.frequency.setValueAtTime(f, t + 0.035); }
+    else o.frequency.setValueAtTime(f, t);
+    if (len >= 4) { const l = c.createOscillator(), lg = c.createGain(); l.frequency.value = 6; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(f * 0.012, t + dur); l.connect(lg).connect(o.frequency); l.start(t); l.stop(t + dur + 0.03); }
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.006); g.gain.setValueAtTime(peak * 0.85, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(d); o.start(t); o.stop(t + dur + 0.03);
+  }
+  // one sixteenth step at time t, at a heat (0..1) and a density level; returns the step's length
+  function play(c, d, t, s, song, heat, lv) {
+    const bpm = song.bpm[0] + (song.bpm[1] - song.bpm[0]) * heat, step = 60 / bpm / 4 / (s.accel || 1), b = noiseBufs(c);
+    const p = s.perc ? s.perc[lv] : s;
+    if (p.bg) kit.bg(c, d, t, p.bg);
+    if (p.cym) kit.cym(c, d, t, p.cym);
+    if (p.drum) kit.drum(c, d, t, p.drum);
+    if (p.sg) kit.sg(c, d, t, p.sg, song.sg);
+    if (s.lead) lead(c, d, t, s.lead[0], s.lead[1], step, b.p25, 0.13, s.lead[2]);
+    const l2 = s.l2s ? s.l2s[lv] : s.l2; if (l2) lead(c, d, t + 0.012, l2[0], l2[1], step, b.p12, 0.07, s.l2s ? 0 : undefined);
+    const bs = s.basses ? s.basses[lv] : s.bass; if (bs) osc(c, d, t, 'triangle', hz(bs[0] - 12), hz(bs[0] - 12), 0.32, step * bs[1]);
+    return step;
+  }
+  const CRASH = { bg: 1, cym: 1, drum: 1 };
+  const levelOf = h => h < 0.34 ? 0 : h < 0.67 ? 1 : 2;
+
+  // ---- live player on the game's AudioContext ----
+  let out = null, on = false, held = false, song = SONGS[0], pos = 0, intro = 0, nextT = 0, heat = 0, target = 0, lv = 0, lastT = 0, closing = false;
+  function tick() {
+    if (!on || !AC || !out) return;
+    const now = AC.currentTime;
+    heat += (target - heat) * (1 - Math.exp(-Math.max(0, now - lastT) / 2)); lastT = now; // glide, about 2 s behind the fight
+    out.gain.setTargetAtTime(muted || held ? 0 : VOL, now, 0.05);
+    if (held || nextT < now - 0.05) { nextT = Math.max(nextT, now + 0.05); if (held) return; } // paused, or the tab was in the background
+    while (nextT < now + 0.12) {
+      if (closing) { play(AC, out, nextT, CRASH, song, 0, 0); on = false; const o = out; setTimeout(() => { try { o.disconnect(); } catch (_) {} }, 2500); return; }
+      const s = intro < song.intro.length ? song.intro[intro++] : song.steps[pos++ % song.steps.length];
+      if (!s.perc || s.bar) lv = levelOf(heat); // density changes only on a bar line
+      nextT += play(AC, out, nextT, s, song, heat, lv);
+    }
+  }
+  setInterval(tick, 30);
+  return {
+    start(n) { // a new round: 起鼓, then the tune from the top
+      if (!AC) return; this.stop();
+      song = SONGS[(n || 0) % SONGS.length];
+      out = AC.createGain(); out.gain.value = 0; out.connect(AC.destination);
+      on = true; held = false; closing = false; pos = 0; intro = 0; heat = target = 0; lv = 0; lastT = AC.currentTime; nextT = AC.currentTime + 0.08; tick();
+    },
+    close() { if (on) closing = true; }, // 收: one crash on the next step, then quiet
+    stop() { if (out) { const o = out; try { o.gain.cancelScheduledValues(AC.currentTime); o.gain.setValueAtTime(0, AC.currentTime); } catch (_) {} setTimeout(() => { try { o.disconnect(); } catch (_) {} }, 300); } out = null; on = false; },
+    hold(v) { held = v; },
+    heat(v) { target = Math.max(0, Math.min(1, v)); },
+    get state() { return { song: SONGS.indexOf(song), heat, target, lv, on }; },
+    // offline render for previews; heatAt(t) gives the fight's heat at second t
+    render(n, seconds, sr, heatAt) {
+      const c = new OfflineAudioContext(1, Math.ceil(seconds * sr), sr), g = c.createGain(); g.gain.value = VOL * 4; g.connect(c.destination);
+      const sg = SONGS[n % SONGS.length]; let t = 0.05, i = 0, l = 0;
+      for (const s of sg.intro) t += play(c, g, t, s, sg, 0, 0);
+      while (t < seconds - 2.5) { const s = sg.steps[i++ % sg.steps.length], h = heatAt ? heatAt(t) : 0; if (!s.perc || s.bar) l = levelOf(h); t += play(c, g, t, s, sg, h, l); }
+      play(c, g, t, CRASH, sg, 0, 0);
+      return c.startRendering();
+    },
+  };
+})();
+
+// ---------- actions ----------
+// A hand-thrown stone: a modest lob whose peak grows gently with distance.
+const Z0 = 30;
+const THROW = { x: -Math.SQRT1_2, y: -Math.SQRT1_2 }; // players throw up and to the left at 45 degrees, as in SnowCraft
+const PLAYER_MIN = 60, PLAYER_RANGE = 400;     // reach at zero and full power (px)
+const CHARGE_TIME = 2.4;                       // seconds to fill the power bar
+function arcFor(dist) { const peak = 22 + dist * 0.16, T = Math.sqrt(8 * peak / G) + 0.05; return { T, vz: (0.5 * G * T * T - Z0) / T }; }
+function spawnStone(f, tx, ty, o) {
+  const dx = tx - f.x, dy = ty - f.y, dist = Math.max(1, Math.hypot(dx, dy));
+  const { T, vz } = arcFor(dist);
+  const st = { x: f.x, y: f.y, z: Z0, vx: dx / T, vy: dy / T, vz, team: f.team, owner: f, dmg: 1, seed: Math.random() * 6, rot: 0 };
+  if (o) Object.assign(st, o);
+  stones.push(st);
+  return st;
+}
+function launch(f, tx, ty, o) {
+  spawnStone(f, tx, ty, o);
+  f.state = 'throw'; f.throwT = 0.28; f.power = 0; f.face = tx - f.x >= 0 ? 1 : -1;
+  if (f.team === 'P') f.cool = 0.35;
+  sfx.whoosh();
+}
+function playerReach(f) { return PLAYER_MIN + f.power * PLAYER_RANGE; }
+const chargeTime = f => CHARGE_TIME / (1 + 0.3 * up.vigor);
+const pickTime = () => 0.4 / (1 + 0.3 * up.vigor);
+function playerThrow(f) {
+  // 散石 spreads the handful along the throw (near, middle, far) so a misjudged distance still lands one
+  const dist = playerReach(f), a0 = Math.atan2(THROW.y, THROW.x);
+  const fan = [[[0, 1]], [[0, 1], [0, 1.17]], [[0, 0.85], [0, 1], [0, 1.16]], [[0, 0.85], [0, 1], [0, 1.16], [-0.12, 1], [0.12, 1]]][up.multi], n = fan.length;
+  const o = { mine: true, dmg: 1 + (up.big > 0 ? 1 : 0), big: up.big > 0, splash: up.big >= 3 ? 46 : up.big >= 2 ? 32 : 0, bounces: up.bounce };
+  for (let i = 0; i < n; i++) {
+    const a = a0 + fan[i][0], d = dist * fan[i][1];
+    const tx = f.x + Math.cos(a) * d, ty = f.y + Math.sin(a) * d, st = spawnStone(f, tx, ty, Object.assign({}, o));
+    if (up.eye >= 2) { // 目色 Lv2: the stone homes in on whoever stands near where it would land
+      let bd = 70; for (const e of enemies) { if (e.down) continue; const dd = Math.hypot(e.x - tx, e.y - ty); if (dd < bd) { bd = dd; st.home = e; } }
+    }
+  }
+  f.state = 'throw'; f.throwT = 0.28; f.power = 0; f.face = THROW.x >= 0 ? 1 : -1; f.cool = 0.35;
+  sfx.whoosh(); if (n > 2) sfx.whoosh();
+}
+// a big stone bursts where it lands and knocks everyone around it
+function splash(st, except) {
+  parts.push({ x: st.x, y: st.y, vx: 0, vy: 0, g: 0, r: 4, vr: st.splash * 2.6, life: 0.32, max: 0.32, ring: true });
+  dust(st.x, st.y);
+  for (const g of fighters) {
+    if (g.down || g.team === st.team || g === except) continue;
+    if (Math.hypot(g.x - st.x, (g.y - st.y) * 1.6) < st.splash) hit(g, { vx: (g.x - st.x) || 1, vy: g.y - st.y, z: 18, dmg: 1, team: st.team, mine: st.mine, owner: st.owner, src: st });
+  }
+}
+// 彈石: a stone that strikes the ground or a man skips on the way it was flying, slower and lower each time.
+// A skip can only veer toward someone roughly ahead, hits for one breath, and a big stone bursts only on its first impact.
+function ricochet(st, from) {
+  st.bounces--; st.hop = (st.hop || 0) + 1; st.last = from; st.home = null; st.dmg = 1; st.splash = 0;
+  const sp = Math.hypot(st.vx, st.vy) || 1, ux = st.vx / sp, uy = st.vy / sp;
+  // each skip carries less far than the last; a body soaks up more than the ground; a heavy stone skips shorter
+  const reach = 160 * Math.pow(0.6, st.hop - 1) * (from ? 0.7 : 1) * (st.big ? 0.8 : 1);
+  let best = null, bd = reach;
+  for (const g of fighters) {
+    if (g.down || g.team === st.team || g === from) continue;
+    const dx = g.x - st.x, dy = g.y - st.y, d = Math.hypot(dx, dy);
+    if (d < 6 || d > bd || (dx * ux + dy * uy) / d < 0.64) continue;   // only someone roughly ahead, within about 50°
+    bd = d; best = g;
+  }
+  const tx = best ? best.x + gauss() * 7 : st.x + ux * reach * 0.7, ty = best ? best.y + gauss() * 5 : st.y + uy * reach * 0.7;
+  const d = Math.max(8, Math.hypot(tx - st.x, ty - st.y));
+  const T = Math.max(0.18, Math.min(d / (sp * (from ? 0.4 : 0.55)), Math.sqrt(8 * 26 / G)));   // slower than it came in, never higher than a low hop
+  st.z = Math.max(st.z, 1); st.vx = (tx - st.x) / T; st.vy = (ty - st.y) / T; st.vz = (0.5 * G * T * T - st.z) / T;
+  dust(st.x, st.y); sfx.thud();
+}
+// The hunting gun. It shoots straight along the throwing line and the first person in the way is killed.
+function gunGeom(f) {
+  const F = f.face, hip = -13, ty = hip - 19, C = [F * 2, ty + 9];
+  const at = k => [C[0] + THROW.x * k, C[1] + THROW.y * k];
+  return { hip, ty, at, B: at(31) };
+}
+function muzzle(f) { const g = gunGeom(f), b = g.at(33); return { x: f.x + b[0], y: f.y + b[1] }; }
+function edgeT(p, U) {
+  let t = 1e9;
+  if (U.x < 0) t = Math.min(t, -p.x / U.x); if (U.x > 0) t = Math.min(t, (W - p.x) / U.x);
+  if (U.y < 0) t = Math.min(t, -p.y / U.y); if (U.y > 0) t = Math.min(t, (H - p.y) / U.y);
+  return Math.max(0, t);
+}
+function fire(f) {
+  const U = THROW, m = muzzle(f);
+  let best = null, bt = edgeT(m, U);
+  const test = (cx, cy, r, obj, kind) => {
+    const dx = cx - m.x, dy = cy - m.y, t = dx * U.x + dy * U.y;
+    if (t > 0 && t < bt && Math.hypot(dx - U.x * t, dy - U.y * t) < r) { bt = t; best = { obj, kind }; }
+  };
+  for (const g of fighters) if (g !== f && !g.down) test(g.x, g.y - 26, 12, g, 'man');
+  for (const c of CROWD) if (!c.dead) test(c.x, c.y - 24 * c.row, 10 * c.row, c, 'crowd');
+  for (const t of tombs) test(t.x, t.y - t.ht * 0.45, t.hw * 0.85, t, 'tomb');
+  const ex = m.x + U.x * bt, ey = m.y + U.y * bt;
+  tracer = { x0: m.x, y0: m.y, x1: ex, y1: ey, t: 0 };
+  flashes.push({ x: m.x, y: m.y, t: 0 });
+  for (let i = 0; i < 6; i++) parts.push({ x: m.x, y: m.y, vx: U.x * rand(15, 55) + rand(-10, 10), vy: U.y * rand(15, 55) - rand(5, 18), g: -12, life: rand(0.9, 1.5), max: 1.5, r: rand(3, 6), puff: true });
+  sfx.bang(); shake = 0.45; fever = 1;
+  f.state = 'fire'; f.fireT = 0.6; f.cool = 1.2;
+  if (best && best.kind !== 'tomb') startEnding(f, best, ex, ey);
+  else if (best) { burst(ex, ey, 8, []); sfx.clack(); }
+}
+const PANIC = ['出人命啦！', '走喔！', '殺人喔！', '開銃啦！'];
+function startEnding(f, h, hx, hy) {
+  mode = 'ending'; ptr.down = false; ptr.grab = false; endT = 0; banner = null; music.stop(); // the shot cuts the music dead
+  ending = { t: 0, rt: 0, shooter: f, stamped: false, shown: false };
+  { // frame the shooter and the one he hit
+    const vx = h.obj.x, vy = h.obj.y;
+    const x0 = Math.min(f.x, vx) - 70, x1 = Math.max(f.x, vx) + 70, y0 = Math.min(f.y, vy) - 95, y1 = Math.max(f.y, vy) + 35;
+    ending.cam = { x: (x0 + x1) / 2, y: (y0 + y1) / 2, z: Math.max(1.3, Math.min(2.8, W / (x1 - x0), H * 0.78 / (y1 - y0))) };
+  }
+  sfx.ring();
+  const shot = { vx: THROW.x * 700, vy: THROW.y * 700, z: 32 };
+  if (h.kind === 'man') {
+    const v = h.obj; v.hp = 0; v.down = true; v.dead = true; v.state = 'down'; v.downT = 0; v.face = THROW.x >= 0 ? -1 : 1;
+    v.wounds.push({ head: false, x: rand(-3, 3), y: 6, r: 3.6, s: 1 });
+    bleed(v, shot); bleed(v, shot);
+    pools.push({ x: v.x, y: v.y - 3, r: 0, max: 34, seed: Math.random() * 10, t: 0 });
+  } else {
+    const c = h.obj; c.dead = true;
+    bleed({ x: c.x, y: c.y, hp: 0 }, shot);
+    pools.push({ x: c.x - 4, y: c.y - 2, r: 0, max: 24 * c.row, seed: Math.random() * 10, t: 0 });
+  }
+  for (const g of fighters) { // everyone on the field drops everything
+    if (g === f || g.down) continue;
+    g.pickT = 0; g.power = 0; g.prepT = 0; g.stun = 0; g.kx = g.ky = 0;
+    if (Math.random() < 0.18) g.state = 'cower';
+    else { const dx = g.x - f.x, dy = g.y - f.y, d = Math.hypot(dx, dy) || 1; g.state = 'flee'; g.fleeSp = rand(120, 170); g.tx = g.x + dx / d * 1400; g.ty = g.y + dy / d * 1400; }
+  }
+  for (const c of CROWD) { // and the crowd runs: the panic spreads out from the shot, everyone running along the edge away from it
+    if (c.dead) continue;
+    c.flee = true; c.react = 0.05 + Math.hypot(c.x - hx, c.y - hy) / 1300 + rand(0, 0.35); c.ox = 0; c.oy = 0;
+    const side = c.x < 10 ? -1 : c.x > W - 10 ? 1 : 0;
+    c.vx = side ? side * rand(4, 14) : Math.sign(c.x - hx || 1) * rand(60, 140);
+    c.vy = side ? Math.sign(c.y - hy || 1) * rand(60, 130) : (c.y < H / 2 ? -1 : 1) * rand(3, 14);
+  }
+  shouts = []; shout(hx, hy, 5, PANIC); sfx.panic(); fever = 1; cheer = 0;
+  hudKey = '';
+}
+// ---------- the police (in those years Taiwanese called them 大人): they pour in from our side of the field and ring the shooter ----------
+function spawnCops() {
+  const f = ending.shooter, slots = [];
+  const ok = (x, y) => x >= 14 && x <= W - 14 && y >= 46 && y <= H - 6 && S(x, y) >= 1 + RIV + 0.03; // not in the creek or across it
+  const clear = (x, y, d) => slots.every(o => Math.hypot(o.x - x, (o.y - y) / 0.7) > d);
+  const off = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+  // A ragged crowd rather than rings: radii and angles jittered, clumps where they bunch up, thin spots,
+  // and a gap straight in front of him so the shooter can still be seen.
+  const clumps = [rand(0, 6.28), rand(0, 6.28), rand(0, 6.28)];
+  [[72, 9], [104, 12], [138, 14], [176, 16]].forEach(([r, n], ring) => {
+    for (let i = 0; i < n; i++) {
+      const a = (i + rand(-0.4, 0.4) + 0.5 * (ring % 2)) / n * Math.PI * 2;
+      if (off(a, Math.PI / 2) < (ring < 2 ? 0.5 : 0.3) && (ring < 2 || Math.random() < 0.6)) continue;
+      const near = clumps.some(c => off(a, c) < 0.35);
+      if (!near && Math.random() < 0.18) continue;
+      const rr = r * rand(0.88, 1.12) * (near ? 0.92 : 1), x = f.x + Math.cos(a) * rr, y = f.y + Math.sin(a) * rr * 0.55;
+      if (ok(x, y) && clear(x, y, near ? 12 : 16)) slots.push({ x, y, a, ring });
+    }
+  });
+  for (const c of clumps) for (let k = 0; k < 3; k++) { // a few more bodies squeezed into each clump
+    const a = c + rand(-0.3, 0.3), rr = rand(80, 150), x = f.x + Math.cos(a) * rr, y = f.y + Math.sin(a) * rr * 0.55;
+    if (off(a, Math.PI / 2) > 0.5 && ok(x, y) && clear(x, y, 11)) slots.push({ x, y, a, ring: rr < 110 ? 1 : 2 });
+  }
+  slots.sort((p, q) => p.ring - q.ring); slots.length = Math.min(slots.length, 26);
+  // entries along the bottom and right edges, on our side of the creek; slots and entries are paired in order around the shooter so paths do not cross
+  const A = [W * 0.18, H + 36], B = [W + 36, H + 36], C = [W + 36, H * 0.12];
+  const lab = B[0] - A[0], lbc = B[1] - C[1];
+  const along = t => { const d = t * (lab + lbc); return d <= lab ? [A[0] + d, A[1]] : [B[0], B[1] - (d - lab)]; };
+  const u = a => ((a + Math.PI * 0.75) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2); // 0 = toward the creek
+  slots.sort((p, q) => u(q.a) - u(p.a));
+  cops = slots.map((sl, i) => {
+    const e = along(Math.min(1, Math.max(0, (i + 0.5) / slots.length + rand(-0.02, 0.02)))), d = Math.hypot(sl.x - e[0], sl.y - e[1]);
+    return { x: e[0], y: e[1], tx: sl.x, ty: sl.y, sp: Math.max(130, d / rand(1.3, 2.1)), wait: rand(0, 0.5) + sl.ring * rand(0.15, 0.45), arrived: false, face: -1,
+             anim: Math.random() * 6, ph: Math.random() * 6, stache: Math.random() < 0.6,
+             s: rand(0.88, 1.1) * (Math.random() < 0.12 ? 1.07 : 1),          // short and tall
+             lean: rand(0.06, 0.13) + (3 - sl.ring) * 0.035,                  // the front ones lean in hardest
+             push: rand(4, 14) * (sl.ring < 2 ? 1 : 0.6),                     // how far they keep pressing in after they get there
+             pose: pickFrom(['spread', 'spread', 'point', 'reach', 'push', 'raise']) };
+  });
+}
+function updateCops(dt) {
+  const sh = ending.shooter;
+  for (const c of cops) {
+    c.anim += dt;
+    if (c.wait > 0) { c.wait -= dt; continue; }
+    if (!c.arrived) {
+      const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy), st = c.sp * dt;
+      if (d <= st) { c.x = c.tx; c.y = c.ty; c.arrived = true; } else { c.x += dx / d * st; c.y += dy / d * st; c.face = dx >= 0 ? 1 : -1; }
+      continue;
+    }
+    c.face = sh.x >= c.x ? 1 : -1;
+    if (c.push > 0) { // a few more shuffling steps toward him, never right on top of him
+      const dx = sh.x - c.x, dy = (sh.y - c.y) / 0.55, d = Math.hypot(dx, dy);
+      if (d > 64) { const st = Math.min(c.push, 9 * dt); c.x += dx / d * st; c.y += dy / d * st * 0.55; c.push -= st; } else c.push = 0;
+    }
+  }
+}
+function goOn() { // the click after the police scene: on to the closing sheet
+  if (!ending || !ending.ready || ending.shown) return false;
+  ending.shown = true; cv.style.cursor = 'default'; $('goOn').hidden = true; sfx.page(); showEnd();
+  return true;
+}
+function showEnd() {
+  saveBest(); endShownAt = performance.now();
+  award('ban'); runSave('取締'); const rk = runRank();
+  $('eStats').textContent = '打到第 ' + level + ' 回，石頭命中 ' + hits + ' 次，分數 ' + score + '。' + (rk && rk <= 10 ? '本機戰績第' + cnum(rk) + '名。' : '');
+  const bt = buildText(); $('eBuild').textContent = '帶的本事：' + (bt || '無');
+  $('ovEnd').hidden = false; $('endAgain').focus({ preventScroll: true });
+}
+// Before every throw the thrower stoops and picks a stone off the ground, as SnowCraft kids pack a snowball.
+function startPick(f, dur) { f.state = 'wind'; f.power = 0; f.pickT = f.pickDur = dur; }
+const NICE = ['好！', '真勇！'];
+function hit(f, s) {
+  if (f.hat > 0) { // the bamboo hat takes the stone and flies off
+    f.hat--; f.flash = 0.1; sfx.clack();
+    parts.push({ hatfly: true, x: f.x, y: f.y - 52, vx: (s.vx > 0 ? 1 : -1) * rand(40, 90), vy: -rand(140, 200), g: 520, rot: 0, vr: rand(-9, 9), life: 1.1, max: 1.1 });
+    shouts.push({ x: f.x, y: f.y - 84, txt: '擋著！', t: 0, rot: rand(-0.1, 0.1) });
+    if (f.team === 'P' && ++rs.hats >= 5) award('hats');
+    return 'blocked';
+  }
+  if (f === sel && ptr.down) { ptr.down = false; ptr.grab = false; }
+  f.hp -= s.dmg || 1; f.stun = 0.6; f.flash = 0.14; f.power = 0; f.pickT = 0; f.prepT = 0; f.state = 'hurt';
+  const sp = Math.hypot(s.vx, s.vy) || 1; f.kx = s.vx / sp * 70; f.ky = s.vy / sp * 70;
+  sfx.hit(); cheer = 1.1; fever = Math.min(1, fever + 0.35); lastHit = { x: f.x, y: f.y };
+  sfx.crowd(); shout(f.x, f.y, 1 + Math.floor(Math.random() * 2), BLOODY);
+  if (f.wounds.length < 4) {
+    const head = s.z > 30 || Math.random() < 0.35;
+    f.wounds.push(head ? { head: true, x: rand(-3.5, 3.5), y: rand(-4, 1.5), r: rand(1.7, 2.4), s: Math.random() * 10 }
+                       : { head: false, x: rand(-6, 6), y: rand(3, 14), r: rand(2.2, 3.2), s: Math.random() * 10 });
+  }
+  bleed(f, s);
+  if (s.team === 'P') { hits++; if (s.mine) { combo++; comboT = 2.4; if (combo >= 10) award('ten'); } score += 10 * Math.max(1, s.mine ? combo : 1); }
+  const src = s.src || s; // a big stone's burst counts as the stone itself
+  if (f.team === 'P') rs.taken++;
+  else if (src.mine) {
+    (src.hitSet || (src.hitSet = new Set())).add(f); if (src.hitSet.size >= 3) award('three');
+    if (behindTomb(f)) award('lob');
+  }
+  if (s.mine && combo >= 2) {
+    shouts.push({ x: f.x, y: f.y - 92, txt: '連中 ' + combo, t: 0, rot: rand(-0.08, 0.08), big: true });
+    if (combo >= 3 && combo % 2) shout(f.x, f.y, 1, NICE);
+  }
+  stopT = Math.max(stopT, f.hp <= 0 ? 0.085 : 0.04);
+  if (f.hp <= 0 && s.mine && up.zong && s.owner && !s.owner.down) { // 食粽: the one who knocked him down gets a breath back
+    const o = s.owner; o.hp = Math.min(o.maxHp, o.hp + up.zong);
+    shouts.push({ x: o.x, y: o.y - 84, txt: '食粽 +' + up.zong, t: 0, rot: 0 });
+  }
+  if (f.hp <= 0 && f.team === 'E') { if (src.mine) rs.mineKO++; else rs.otherKO++; if (src.crowd && ++trk.crowdKO >= 3) award('crowd'); }
+  if (f.hp <= 0) lastKO[f.team] = { owner: s.owner || src.owner, x: f.x, y: f.y };
+  if (f.hp <= 0) { shake = Math.max(shake, 0.14);
+    f.down = true; f.state = 'down'; f.downT = 0; f.face = s.vx >= 0 ? -1 : 1; // falls the way the stone was going
+    fever = 1; cheer = 2; sfx.roar(); shout(f.x, f.y, 4, ['倒啦！', '掔落！', '好！']);
+    pools.push({ x: f.x, y: f.y - 3, r: 0, max: rand(20, 26), seed: Math.random() * 10, t: 0 });
+    if (f.team === 'P' && ashLeft > 0 && mode === 'play') { ashLeft--; f.reviveT = 3.2; shouts.push({ x: f.x, y: f.y - 70, txt: '抹香灰！', t: 0, rot: 0 }); }
+    if (f === sel) sel = players.find(p => !p.down) || null;
+  }
+  hudKey = '';
+}
+function burst(x, y, n, cols) {
+  for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, v = rand(40, 150); parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, life: rand(0.3, 0.6), max: 0.6, r: rand(1.2, 2.6), col: cols[i % cols.length], g: 300 }); }
+}
+function ripple(x, y, k) { parts.push({ x, y, vx: 0, vy: 0, g: 0, r: 2, vr: 16 + 10 * k, life: 0.8, max: 0.8, ring: true }); }
+function dust(x, y) { for (let i = 0; i < 6; i++) { const a = Math.random() * Math.PI * 2; parts.push({ x, y, vx: Math.cos(a) * rand(15, 45), vy: Math.sin(a) * rand(6, 18), life: rand(0.4, 0.7), max: 0.7, r: rand(3, 6), col: '#a8936a', g: 0, puff: true }); } }
+
+function aiThink(f, dt) {
+  if (f.down || f.stun > 0 || f.prepT > 0 || f.state === 'wind' || f.state === 'throw' || f.state === 'hurt') return;
+  f.ai.t -= dt; if (f.ai.t > 0) return;
+  const targets = players.filter(p => !p.down); if (!targets.length) return;
+  const fu = foe ? foe.fury : 0, k = 1 / (1 + 0.2 * fu); // from round 37 each round quicker (see foeAt)
+  if (Math.random() < Math.min(0.68, 0.56 + dl * 0.02) + Math.min(0.22, 0.03 * fu)) {
+    startPick(f, rand(0.45, 0.6) * k); f.wind = Math.max(0.35, rand(0.55, 1.25) - dl * 0.04) * k;
+    f.target = targets[Math.floor(Math.random() * targets.length)];
+    f.ai.t = Math.max(0.85, rand(1.7, 3.3) - dl * 0.11) * k + f.wind;
+  } else {
+    let dest = null;
+    const ts = tombs.filter(t => t.team === 'E');
+    if (ts.length && Math.random() < 0.55) { const t = ts[Math.floor(Math.random() * ts.length)]; dest = { x: t.x - NRM.x * 26 + rand(-14, 14), y: t.y - NRM.y * 26 }; }
+    if (!dest) dest = { x: f.x + rand(-90, 90), y: f.y + rand(-70, 70) };
+    const q = clampZone('E', dest); pushOut(q);
+    f.tx = q.x; f.ty = q.y; f.state = 'walk'; f.stuck = 0;
+    f.ai.t = rand(0.8, 1.8);
+  }
+}
+function aiRelease(f) {
+  const t = f.target;
+  if (!t || t.down) { f.state = 'idle'; f.power = 0; return; }
+  const d0 = Math.hypot(t.x - f.x, t.y - f.y), T = arcFor(d0).T;
+  let vx = 0, vy = 0;
+  if (t.state === 'walk') { const dx = t.tx - t.x, dy = t.ty - t.y, d = Math.hypot(dx, dy) || 1; vx = dx / d * 120; vy = dy / d * 120; }
+  const fu = foe ? foe.fury : 0; // from round 37: lead you fully, aim tighter
+  const lead = Math.min(1, Math.min(0.8, 0.1 + dl * 0.1) + 0.05 * fu), err = Math.max(4, Math.max(13, 40 - dl * 3.2) - 1.5 * fu);
+  launch(f, t.x + vx * T * lead + gauss() * err, t.y + vy * T * lead + gauss() * err * 0.7, f.bigStone ? { dmg: 2, big: true } : null);
+}
+// Your own people, when you are not holding them: they shuffle about and lob a stone now and then.
+// Slow, loose and weak on purpose; they add noise to the field rather than win the round for you.
+// Only one idle teammate goes off to skip stones; if you grab him or he goes down, another idle one takes over.
+let skipper = null;
+function skipperNow() {
+  if (!skipper || skipper.down || skipper === sel || !players.includes(skipper))
+    skipper = players.filter(p => !p.down && p !== sel).pop() || null;
+  return skipper;
+}
+function allyThink(f, dt) {
+  if (f.down || f.stun > 0 || f.prepT > 0 || f.state === 'wind' || f.state === 'throw' || f.state === 'hurt' || f.state === 'aim' || f.state === 'fire') return;
+  if ((f === sel && ptr.down) || f.manualT > 0) return;
+  f.ai.t -= dt; if (f.ai.t > 0) return;
+  if (up.skip > 0 && f === skipperNow()) { // 打水漂: one idle teammate wanders to the bank and skips stones instead of fighting
+    const sNow = S(f.x, f.y), bankS = 1 + BANK + 0.015;
+    if (sNow > bankS + 0.05 || Math.random() < 0.25) {
+      const g = NRM.x / W + NRM.y / H, k = (bankS + rand(0, 0.02) - sNow) / g, along = rand(-70, 70);
+      const q = clampZone('P', { x: f.x + NRM.x * k + NRM.y * along, y: f.y + NRM.y * k - NRM.x * along }); pushOut(q);
+      f.tx = q.x; f.ty = q.y; f.state = 'walk'; f.stuck = 0; f.ai.t = rand(1.4, 2.6);
+    } else { startPick(f, rand(0.5, 0.7)); f.wind = rand(0.3, 0.6); f.skipThrow = true; f.ai.t = up.skip >= 4 ? rand(5.5, 8) : rand(2.4, 4.4); } // a top-level run lasts about five seconds
+    return;
+  }
+  const foes = enemies.filter(e => !e.down); if (!foes.length) return;
+  if (Math.random() < (up.lead ? 0.72 : 0.5)) {
+    startPick(f, rand(0.5, 0.7)); f.wind = rand(0.7, 1.4);
+    f.target = foes[Math.floor(Math.random() * foes.length)];
+    f.ai.t = up.lead ? rand(1.8, 3.4) : rand(2.8, 5.5);
+  } else {
+    const q = clampZone('P', { x: f.x + rand(-80, 80), y: f.y + rand(-60, 60) }); pushOut(q);
+    f.tx = q.x; f.ty = q.y; f.state = 'walk'; f.stuck = 0;
+    f.ai.t = rand(1.2, 2.8);
+  }
+}
+function allyRelease(f) {
+  const t = f.target;
+  if (!t || t.down) { f.state = 'idle'; f.power = 0; return; }
+  const d = Math.hypot(t.x - f.x, t.y - f.y);
+  const good = up.lead > 0, reach = Math.min(d * (good ? rand(0.95, 1.04) : rand(0.82, 1.12)), PLAYER_MIN + PLAYER_RANGE * 0.9);
+  const a = Math.atan2(t.y - f.y, t.x - f.x) + gauss() * (good ? 0.05 : 0.13);
+  launch(f, f.x + Math.cos(a) * reach, f.y + Math.sin(a) * reach, up.lead >= 2 ? { dmg: 2, big: true } : null);
+}
+function rallyThrow() {
+  const helpers = CROWD.filter(c => c.front && !c.dead && S(c.x, c.y) > 1.1 && c.x > 30 && c.x < W - 30);
+  const foes = enemies.filter(e => !e.down);
+  if (!helpers.length || !foes.length) return;
+  for (let k = up.rally >= 3 ? 2 : 1; k > 0; k--) {
+    const c = helpers[Math.floor(Math.random() * helpers.length)], e = foes[Math.floor(Math.random() * foes.length)];
+    c.thr = time;
+    spawnStone({ x: c.x, y: c.y - 6, team: 'P', crowd: c }, e.x + gauss() * 14, e.y + gauss() * 9, { crowd: true });
+  }
+  sfx.whoosh();
+}
+// 考水披. The skipper throws along the longer stretch of creek. At the top level a stone makes twenty-odd skips,
+// each a little shorter and quicker than the last, and the last one carries it up onto the far bank, where it stops,
+// as the record skippers say happens on narrow rivers.
+const SKIP_R = 0.91;
+function creekRoom(x, y, dir) { // how far one can skip down the visible creek from here, one way or the other
+  const t = (x / W + 1 - y / H) / 2, tMin = Math.max(50 / H, 20 / W), tMax = 1 - Math.max(60 / H, 20 / W);
+  return Math.max(0, (dir > 0 ? tMax - t : t - tMin) * Math.hypot(W, H));
+}
+function skipRelease(f) {
+  f.skipThrow = false;
+  const dir = creekRoom(f.x, f.y, 1) >= creekRoom(f.x, f.y, -1) ? 1 : -1, ax = NRM.y * dir, ay = -NRM.x * dir; // along the creek
+  let st;
+  if (up.skip >= 4) { // lob it onto the middle of the creek, a little way along
+    const off = (S(f.x, f.y) - 1) / Math.hypot(1 / W, 1 / H), T = 0.3, tx = f.x - NRM.x * off + ax * 40, ty = f.y - NRM.y * off + ay * 40;
+    st = { x: f.x, y: f.y, z: 24, vx: (tx - f.x) / T, vy: (ty - f.y) / T, vz: (0.5 * G * T * T - 24) / T, team: 'P', skip: true, legend: true,
+           hops: 0, maxHops: 20 + Math.floor(Math.random() * 5), dir, seed: Math.random() * 6, rot: 0 };
+  } else {
+    let dx = ax * 0.72 - NRM.x * 0.7, dy = ay * 0.72 - NRM.y * 0.7; const l = Math.hypot(dx, dy); dx /= l; dy /= l;
+    const sp = 220 + 45 * up.skip;
+    st = { x: f.x, y: f.y, z: 24, vx: dx * sp, vy: dy * sp, vz: 30, team: 'P', skip: true, hops: 0, maxHops: 2 * up.skip, dir, seed: Math.random() * 6, rot: 0 };
+  }
+  stones.push(st);
+  f.state = 'throw'; f.throwT = 0.28; f.power = 0; f.face = st.vx >= 0 ? 1 : -1; sfx.whoosh();
+}
+function legendHop(s) { // the next skip of a top-level stone, planned at its first touch so the whole run fits on screen
+  const ax = NRM.y * s.dir, ay = -NRM.x * s.dir, g = Math.hypot(1 / W, 1 / H), off = (S(s.x, s.y) - 1) / g; // off: px from the middle of the creek
+  const half = RIV / g, n = s.maxHops; // half: the creek's half-width in px
+  if (s.hops === 1) s.d0 = creekRoom(s.x, s.y, s.dir) * 0.85 * (1 - SKIP_R) / (1 - Math.pow(SKIP_R, n - 1));
+  let d, side, T;
+  if (s.hops < n) { // down the creek, curving little by little toward the far side the way a spinning stone does
+    d = s.d0 * Math.pow(SKIP_R, s.hops - 1); T = Math.min(0.45, 0.11 + 0.0045 * d);
+    const u = (1 - Math.pow(SKIP_R, s.hops)) / (1 - Math.pow(SKIP_R, n - 1)); // share of the run done after this skip
+    side = (half - 6) * u * u;
+  } else { d = Math.max(36, 3 * s.d0 * Math.pow(SKIP_R, n - 2)); side = half + 14; T = 0.36; } // the last one carries on along its curve, up the far bank
+  const across = off + side; // px to move toward the far bank, to end up `side` px past the middle
+  s.vx = (ax * d - NRM.x * across) / T; s.vy = (ay * d - NRM.y * across) / T; s.vz = G * T / 2;
+}
+function pushOut(f) {
+  for (const t of tombs) {
+    const dx = f.x - t.x, dy = f.y - (t.y - 1), hw = t.hw + 9, hh = t.kind === 'houtu' ? 8 : 12;
+    if (Math.abs(dx) < hw && Math.abs(dy) < hh) {
+      const ox = hw - Math.abs(dx), oy = hh - Math.abs(dy);
+      if (ox < oy) f.x += Math.sign(dx || 1) * ox; else f.y += Math.sign(dy || 1) * oy;
+    }
+  }
+}
+
+// ---------- update ----------
+function updFighter(f, dt) {
+  f.anim += dt; if (f.flash > 0) f.flash -= dt;
+  if (f.down) {
+    f.downT += dt;
+    if (f.reviveT > 0 && mode === 'play') {
+      f.reviveT -= dt;
+      if (f.reviveT <= 0) { f.down = false; f.hp = Math.max(1, Math.ceil(f.maxHp / 2)); f.state = 'idle'; f.stun = 0; f.wounds = []; shouts.push({ x: f.x, y: f.y - 84, txt: '香灰！閣來！', t: 0, rot: 0 }); hudKey = ''; }
+    }
+    return;
+  }
+  if (f.state === 'flee') { const dx = f.tx - f.x, dy = f.ty - f.y, d = Math.hypot(dx, dy) || 1, sp = f.fleeSp * dt; f.x += dx / d * sp; f.y += dy / d * sp; f.face = dx >= 0 ? 1 : -1; f.moving = true; return; }
+  if (f.state === 'cower' || f.state === 'surrender' || f.state === 'cheer') { f.moving = false; return; }
+  if (f.hp < f.maxHp) {
+    f.drip -= dt * (f.maxHp - f.hp) * (f.moving || f.state === 'walk' ? 1.8 : 0.45);
+    if (f.drip <= 0) { f.drip = rand(0.18, 0.5); splat(f.x + rand(-4, 4), f.y + rand(-1, 2), rand(0.8, 1.6), 0, 0); }
+  }
+  if (Math.abs(f.kx) + Math.abs(f.ky) > 2) {
+    f.x += f.kx * dt; f.y += f.ky * dt; const k = Math.pow(0.03, dt); f.kx *= k; f.ky *= k;
+    const q = clampZone(f.team, f); f.x = q.x; f.y = q.y; pushOut(f);
+  } else { f.kx = f.ky = 0; }
+  if (f.cool > 0) f.cool -= dt;
+  if (f.manualT > 0) f.manualT -= dt;
+  if (f.stun > 0) { f.stun -= dt; if (f.stun <= 0) f.state = 'idle'; return; }
+  if (f.state === 'throw') { f.throwT -= dt; if (f.throwT <= 0) f.state = 'idle'; f.moving = false; return; }
+  if (f.state === 'fire') { f.fireT -= dt; if (f.fireT <= 0 && !(ending && ending.shooter === f)) f.state = 'idle'; f.moving = false; return; }
+  if (f.team === 'P' && f === sel && ptr.down && ptr.grab && mode === 'play') {
+    // SnowCraft: the held person runs after the cursor while the stone power builds
+    const q = clampZone('P', { x: ptr.x + ptr.ox, y: ptr.y + ptr.oy }); pushOut(q);
+    const dx = q.x - f.x, dy = q.y - f.y, d = Math.hypot(dx, dy), sp = 165 * (1 + 0.1 * up.vigor) * dt;
+    if (d > 1) { const k = Math.min(1, sp / d); f.x += dx * k; f.y += dy * k; pushOut(f); }
+    f.moving = d > 3; f.tx = f.x; f.ty = f.y;
+    if (up.gun) { // with the gun there is no stone to pick: raise it, then let go to fire
+      if (f.state !== 'aim' && f.cool <= 0) { f.state = 'aim'; f.aimT = 0.3; sfx.cock(); }
+      if (f.state === 'aim' && f.aimT > 0) f.aimT -= dt;
+      f.face = THROW.x < 0 ? -1 : 1;
+      return;
+    }
+    if (f.state !== 'wind' && f.cool <= 0) startPick(f, pickTime());
+    if (f.state === 'wind') {
+      if (f.pickT > 0) { f.pickT -= dt; if (f.pickT <= 0) { sfx.pick(); dust(f.x + f.face * 10, f.y); } }
+      else f.power = Math.min(1, f.power + dt / chargeTime(f));
+    }
+    return;
+  }
+  f.moving = false;
+  if (f.prepT > 0) f.prepT -= dt;
+  if (f.state === 'wind') {
+    if (f.pickT > 0) { f.pickT -= dt; return; }
+    f.power = Math.min(1, f.power + dt / 1.15);
+    f.wind -= dt; if (f.wind <= 0) (f.team === 'E' ? aiRelease : f.skipThrow ? skipRelease : allyRelease)(f);
+    return;
+  }
+  if (f.state === 'walk') {
+    const dx = f.tx - f.x, dy = f.ty - f.y, d = Math.hypot(dx, dy);
+    const sp = (f.team === 'P' ? 95 : 82 + dl * 4) * dt;
+    if (d <= sp) { f.x = f.tx; f.y = f.ty; f.state = 'idle'; }
+    else {
+      const ox = f.x, oy = f.y;
+      f.x += dx / d * sp; f.y += dy / d * sp; f.face = dx >= 0 ? 1 : -1;
+      pushOut(f);
+      if (Math.hypot(f.x - ox, f.y - oy) < sp * 0.3) { f.stuck += dt; if (f.stuck > 0.6) f.state = 'idle'; } else f.stuck = 0;
+    }
+  }
+}
+function separate() {
+  for (let i = 0; i < fighters.length; i++) for (let j = i + 1; j < fighters.length; j++) {
+    const a = fighters[i], b = fighters[j];
+    if (a.down || b.down || a.team !== b.team) continue;
+    const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+    if (d > 0 && d < 20) { const p = (20 - d) / 2, nx = dx / d, ny = dy / d; a.x -= nx * p; a.y -= ny * p; b.x += nx * p; b.y += ny * p; }
+  }
+}
+function update(dt) {
+  time += dt;
+  if (banner) { banner.t += dt; if (banner.t > banner.dur) banner = null; }
+  if (marker) { marker.t -= dt; if (marker.t <= 0) marker = null; }
+  if (cheer > 0) cheer -= dt;
+  if (comboT > 0) { comboT -= dt; if (comboT <= 0) combo = 0; }
+  if (up.rally && mode === 'play' && !endT) { rallyT -= dt; if (rallyT <= 0) { rallyT = [0, 4.2, 2.8, 2.6][up.rally]; rallyThrow(); } }
+  fever = Math.max(mode === 'play' ? 0.3 : 0.2, fever - dt * 0.09);
+  if (mode === 'play') music.heat(battleHeat());
+  for (const sh of shouts) sh.t += dt; shouts = shouts.filter(sh => sh.t < 1.4);
+  if (mode === 'play') { shoutT -= dt * (0.6 + fever); if (shoutT <= 0) { shoutT = rand(1.6, 3.4); shout(rand(0, W), Math.random() < 0.5 ? 0 : H, 1, SHOUTS); } }
+  murmurLevel();
+  if (tracer) { tracer.t += dt; if (tracer.t > 0.5) tracer = null; }
+  for (const fl of flashes) fl.t += dt; flashes = flashes.filter(fl => fl.t < 0.2);
+
+  if (ending) {
+    ending.t += dt;
+    for (const c of CROWD) if (c.flee && ending.t > c.react) { c.ox += c.vx * dt; c.oy += c.vy * dt; if (Math.abs(c.vx) < 2000) c.vx *= 1 + dt * 0.25; }
+    if (ending.t < 1.3 && Math.random() < dt * 5) shout(rand(0, W), Math.random() < 0.5 ? 0 : H, 1, PANIC);
+    if (!ending.copsIn && ending.rt > 2.5) { ending.copsIn = true; spawnCops(); sfx.whistle(0); sfx.whistle(0.8); shout(W * 0.8, H, 2, ['大人來了！']); }
+    updateCops(dt);
+    if (!ending.surr && cops.some(c => c.arrived)) { ending.surr = true; ending.shooter.state = 'surrender'; sfx.whistle(0); }
+    if (!ending.stamped && ending.rt > 6.2) { ending.stamped = true; sfx.stamp(); }
+    if (!ending.ready && ending.rt > GO_AT) { ending.ready = true; cv.style.cursor = 'pointer'; $('goOn').hidden = false; } // hold here until a click
+  }
+  const live = mode === 'play';
+  for (const f of fighters) updFighter(f, dt);
+  if (live && !endT) { for (const e of enemies) aiThink(e, dt); for (const p of players) allyThink(p, dt); }
+  separate();
+  for (const s of stones) {
+    s.x += s.vx * dt; s.y += s.vy * dt; s.vz -= G * dt; s.z += s.vz * dt; s.rot += dt * 10;
+    if (s.skip) { // a skipping stone touches nobody; it hops along the water and the crowd counts
+      if (s.z <= 0) {
+        if (inRiver(s.x, s.y) && s.hops < s.maxHops) {
+          s.hops++; s.z = 0;
+          if (s.legend) legendHop(s);
+          else {
+            s.vz = 150 * Math.pow(0.88, s.hops);
+            const sp = Math.hypot(s.vx, s.vy) * 0.9, ax = NRM.y * s.dir, ay = -NRM.x * s.dir;
+            let vx = ax * 0.95 - NRM.x * 0.12, vy = ay * 0.95 - NRM.y * 0.12; const l = Math.hypot(vx, vy);
+            s.vx = vx / l * sp; s.vy = vy / l * sp;
+          }
+          ripple(s.x, s.y, s.legend ? Math.max(0.15, 0.5 * Math.pow(0.94, s.hops)) : 0.5); sfx.plip(Math.min(s.hops, 14));
+          const txt = cnum(s.hops) + '！';
+          if (!s.legend) shouts.push({ x: s.x, y: s.y - 20, txt, t: 0, rot: rand(-0.12, 0.12) });
+          else if (s.lab && shouts.includes(s.lab)) Object.assign(s.lab, { x: s.x, y: s.y - 22, txt, t: 0.15, big: s.hops >= 10 }); // one count that follows the stone
+          else { s.lab = { x: s.x, y: s.y - 22, txt, t: 0, rot: rand(-0.08, 0.08), big: false }; shouts.push(s.lab); }
+        } else {
+          s.dead = true;
+          if (inRiver(s.x, s.y)) { ripple(s.x, s.y, 1); sfx.splash(); }
+          else {
+            pebbles.push({ x: s.x, y: s.y, t: 0 }); sfx.thud();
+            if (s.legend && s.hops >= s.maxHops) { dust(s.x, s.y); sfx.roar(); cheer = 1.6; fever = Math.min(1, fever + 0.3); shout(s.x, s.y, 2, NICE); }
+          }
+        }
+      }
+      if (s.x < -60 || s.x > W + 60 || s.y < -120 || s.y > H + 60) s.dead = true;
+      continue;
+    }
+    if (s.home && !s.home.down && s.vz < 0) { // steer during the fall
+      const tg = (s.vz + Math.sqrt(s.vz * s.vz + 2 * G * Math.max(0, s.z))) / G;
+      if (tg > 0.04) { const k = Math.min(1, dt * 5); s.vx += ((s.home.x - s.x) / tg - s.vx) * k; s.vy += ((s.home.y - s.y) / tg - s.vy) * k; }
+    }
+    let dead = false;
+    for (const t of tombs) {
+      if (s.z < t.ht && Math.abs(s.x - t.x) < t.hw && s.y > t.y - 9 && s.y < t.y + 6) {
+        dead = true; burst(s.x, s.y - s.z, 7, ['#fff6cc', '#d6d2c4', '#9a978c']); sfx.clack();
+        pebbles.push({ x: s.x + rand(-6, 6), y: t.y + 8, t: 0 }); break;
+      }
+    }
+    if (!dead && live) for (const f of fighters) {
+      if (f.down || f.team === s.team || f === s.last) continue;
+      const rx = f.team === 'P' ? (s.big ? 13 : 11) : s.big ? 18 : 15, ry = f.team === 'P' ? (s.big ? 10 : 8) : s.big ? 13 : 11;
+      if (s.z < 46 && Math.abs(s.x - f.x) < rx && Math.abs(s.y - f.y) < ry) {
+        const r = hit(f, s);
+        if (s.splash && r !== 'blocked') splash(s, f);
+        if (r !== 'blocked' && s.bounces > 0) ricochet(s, f); else dead = true;
+        break;
+      }
+    }
+    if (!dead && s.z <= 0) {
+      if (inRiver(s.x, s.y)) { dead = true; ripple(s.x, s.y, 1); ripple(s.x, s.y, 0.3); sfx.splash(); }
+      else {
+        if (s.splash && live) splash(s, null);
+        if (s.bounces > 0 && live) ricochet(s, null);
+        else { dead = true; pebbles.push({ x: s.x, y: s.y, t: 0 }); dust(s.x, s.y); sfx.thud(); }
+      }
+    }
+    if (s.x < -60 || s.x > W + 60 || s.y < -120 || s.y > H + 60) dead = true;
+    s.dead = dead;
+  }
+  stones = stones.filter(s => !s.dead);
+  for (const p of parts) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.g * dt; if (p.puff) { p.r += dt * 8; p.vx *= 0.92; p.vy *= 0.92; } if (p.ring) p.r += p.vr * dt; if (p.hatfly) p.rot += p.vr * dt; }
+  for (const b of blood) {
+    b.vz -= G * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt;
+    if (b.z <= 0) { b.dead = true; if (inRiver(b.x, b.y)) { if (Math.random() < 0.25) ripple(b.x, b.y, 0); } else splat(b.x, b.y, b.r * 1.35, b.vx, b.vy); }
+  }
+  blood = blood.filter(b => !b.dead);
+  for (const p of pools) {
+    p.t += dt; const r = p.max * (1 - Math.exp(-p.t * 0.9));
+    if (sctx && r > p.r + 0.15) { sctx.fillStyle = BLOOD; blob(sctx, p.x, p.y, r, p.seed, 1.3, 0, 0.55); p.r = r; }
+  }
+  pools = pools.filter(p => p.t < 6);
+  parts = parts.filter(p => p.life > 0);
+  for (const t of texts) t.t += dt; texts = texts.filter(t => t.t < 0.9);
+  for (const p of pebbles) p.t += dt; pebbles = pebbles.filter(p => p.t < 6);
+
+  if (live) {
+    if (!endT) {
+      if (enemies.every(e => e.down)) { endT = 1; endWin = true; music.close(); startFinale(true); }
+      else if (players.every(p => p.down && !(p.reviveT > 0))) { endT = 1; endWin = false; music.close(); startFinale(false); }
+    } else if (!finale || finale.skip || finale.rt >= FIN_LEN) { endT = 0; if (finale) finale.done = true; endWin ? roundWon() : gameOver(); }
+  }
+}
+const NUM = ['零','一','二','三','四','五','六','七','八','九','十'];
+const cnum = n => n <= 10 ? NUM[n] : n < 20 ? '十' + NUM[n - 10] : n < 100 ? NUM[Math.floor(n / 10)] + '十' + (n % 10 ? NUM[n % 10] : '') : String(n);
+// Facts paraphrased from 楊佳霖〈論臺灣端午節的石戰習俗〉(臺灣文獻 62:2) and 賴襄南〈鹿港の石合戰〉.
+const FACTS = [
+  '1896 年的《鹿港風俗一斑》記載，鹿港人在清明節互擲石頭，相信不打就會有熱病流行，石戰受的傷浸過水就會好。',
+  '石戰各地叫法不同：投石、鬥石、擲石、石戲。日治時期的日文報紙則稱為「石合戰」。',
+  '日治時期報導裡最常見的理由是祛疾避疫：不打石戰，地方就會有瘟疫，五穀也收成不好。',
+  '石戰不只在臺灣：中國東南、日本、朝鮮都留有紀錄，是前現代東亞廣泛分佈的節氣儀式性戰爭遊戲。',
+  '屏東佳冬流傳一個故事：一位久病不癒的瘧疾患者抱病加入石戰，大汗淋漓之後病竟然好了，從此參加的人越來越多。',
+  '另一種說法：五月初五這天的草木幾乎都能入藥，石戰受了傷，隨手揉一把草敷上就好。',
+  '對陣中常見朋友對朋友、親戚對親戚、丈人對女婿。打完的規矩是「傷不記仇，輸不記恨」。',
+  '東港一帶甚至相信，在石戰裡受傷會帶來好運。',
+  '在佳冬，勝方可以進到敗方村落吃粽子和酒菜；跑得慢被抓到的輸家，會被脫掉褲子當眾羞辱。',
+  '鹿港的石戰在清明前後舉行。賴襄南記錄的說法是：不打的話整個鹿港街區會發生災難；另一說是為了宣洩施、黃兩氏的宿怨。',
+  '在殖民政府眼中，石戰的群眾動員與暴力，是可能失控為叛亂的武裝演習，於是被當成「蒙昧惡俗」，派警察取締。',
+  '臺中神岡的石戰在 1917 年被改成以賽跑為主的運動會；佳冬則在警方監督下改成對抗競技。',
+  '日本本土過去也有石合戰。江戶幕府在 1632 年因為石戰演變成刀劍械鬥，下令禁止。'
+];
+let factIdx = Math.floor(Math.random() * FACTS.length);
+function nextFact() { factIdx = (factIdx + 1) % FACTS.length; return FACTS[factIdx]; }
+// Upgrades. 「我」 ones make the person you hold stronger (your allies keep throwing plain stones);
+// 「全隊」 ones help everyone. 考水披 (stone skipping) is dealt as a 傳說 and played straight. The gun is the end of the road.
+const UPG = {
+  eye:    { name: '目色', tag: '我', max: 2, w: 1.4, desc: lv => ['眼光較利：蓄力時看得到整條拋物線，連落點都看得到。', '石頭會自己追向落點附近的人。'][lv] },
+  big:    { name: '大粒石', tag: '我', max: 3, w: 1.3, desc: lv => ['改撿溪底的大粒石：比較好打中，打中扣兩口氣。', '大粒石落地會爆開，打到旁邊的人。', '爆得更開。'][lv] },
+  multi:  { name: '散石', tag: '我', max: 3, w: 1.3, desc: lv => ['一次抓兩粒，一粒落得較遠，距離估不準也打得到。', '一次抓三粒，近、中、遠各一粒。', '一次抓五粒，一把撒出去。'][lv] },
+  vigor:  { name: '勇健', tag: '我', max: 3, w: 1.1, desc: () => '手腳較緊：撿石、蓄力、跑步都快三成。' },
+  bounce: { name: '彈石', tag: '我', max: 2, w: 1, desc: lv => ['石頭落地或打中人以後，會往前再彈一下，打到前面的人。彈起來力道小很多。', '可以連彈兩次，一次比一次近。'][lv] },
+  zong:   { name: '食粽', tag: '我', max: 2, w: 0.9, desc: lv => ['每打倒一個人，丟石的人回一口氣。', '每打倒一個人，回兩口氣。'][lv], note: '佳冬的贏家，可以進輸家庄裡吃粽子。' },
+  hat:    { name: '斗笠', tag: '全隊', max: 3, w: 1.1, desc: lv => lv ? '每回合多擋一顆石頭。' : '自己人都戴上斗笠，每回合擋得住一顆石頭。', note: '今日佳冬重現石戰，防守的人就拿斗笠擋。' },
+  build:  { name: '漢草', tag: '全隊', max: 3, w: 1, desc: () => '身材粗勇，挨得住。我方每人氣力上限 +1。' },
+  people: { name: '落人', tag: '全隊', max: 7, w: 1, desc: () => '回庄裡叫人來鬥陣，我方多一個人。', note: '鹿港石戰，參加的男子多達數千人。' },
+  lead:   { name: '帶陣', tag: '全隊', max: 2, w: 1, desc: lv => ['你來帶陣：自己人丟得較準、較勤。', '自己人也改丟大粒石。'][lv] },
+  rally:  { name: '拉攏', tag: '全隊', max: 3, w: 0.95, desc: lv => ['拉攏看熱鬧的人：場邊有人幫你丟石頭。', '幫手變多，丟得更勤。', '幫手一次丟兩粒。'][lv], note: '無聊！我要看到血流成河！' },
+  ash:    { name: '香灰', tag: '全隊', max: 2, w: 0.9, desc: lv => ['每回合第一個倒下的自己人，抹上香灰，過幾秒又站起來。', '每回合救得了兩個人。'][lv], note: '北屯的人打完石戰，拿萬善祠、土地公廟的香灰抹傷口。' },
+  skip:   { name: '考水披', tag: '傳說', max: 4, w: 0.5, desc: lv => lv >= 3 ? '他的石頭跳的次數，觀眾兩隻手數不完。' : lv ? '他的石頭在水面上多跳兩下，漂得更遠。' : '隊上來了一位鑽研考水披技巧的傳說。' },
+  gun:    { name: '獵槍', tag: '傳說', max: 1, w: 0,
+            desc: () => '不用撿石，不用蓄力。按住就舉槍，放開就開槍，子彈直直飛，打到就倒。' + (handLv() >= 4 ? '你的石頭已經丟到極致，該換傢私了。' : '對面越來越多人，庄裡有人拿出一把獵槍。'),
+            note: '<span class="en quote" lang="en">Don’t bring a gun to a stonefight.</span>' },
+  rest:   { name: '添香油', tag: '補給', max: 99, w: 0, desc: () => '去廟裡添香油錢，多一次重來的機會。' }
+};
+const HAND = ['eye', 'big', 'multi', 'vigor', 'bounce', 'zong'];
+const OFFENSE = ['eye', 'big'];
+// 目色 and 大粒石 do the most to win a round, so their first level is dealt three times as often
+// 考水披 is rare until taken; once taken it comes up about three times as often, and once taken twice (on purpose,
+// not by a slip) it is in the deal most rounds: about 10%, 28% and 70% of rounds (60% once the gun takes a slot).
+const weightOf = k => OFFENSE.includes(k) && up[k] === 0 ? 3 : k === 'skip' ? [0.5, 1.6, 7, 7][up.skip] : UPG[k].w;
+const handLv = () => HAND.reduce((a, k) => a + up[k], 0);
+// The gun never turns up before round 5 is won; from then on it is always one of the three cards.
+function gunOffered() { return !up.gun && level >= 5; }
+function rollChoices() {
+  const pool = Object.keys(UPG).filter(k => UPG[k].w > 0 && up[k] < UPG[k].max), picks = [];
+  while (picks.length < 3 && pool.length) {
+    let r = Math.random() * pool.reduce((a, k) => a + weightOf(k), 0), i = 0;
+    for (; i < pool.length - 1; i++) { r -= weightOf(pool[i]); if (r <= 0) break; }
+    picks.push(pool.splice(i, 1)[0]);
+  }
+  if (level === 1 && !picks.some(k => OFFENSE.includes(k))) picks[0] = OFFENSE[Math.floor(Math.random() * OFFENSE.length)]; // first pick always has a clear damage-dealer
+  if (gunOffered()) { if (picks.length >= 3) picks[2] = 'gun'; else picks.push('gun'); }
+  while (picks.length < 3) picks.push('rest');
+  return shuffle(picks);
+}
+function buildText() {
+  return Object.keys(UPG).filter(k => k !== 'rest' && up[k] > 0).map(k => UPG[k].name + (UPG[k].max > 1 ? ' Lv' + up[k] : '')).join(' · ');
+}
+function renderCards() {
+  const box = $('cards'); box.innerHTML = '';
+  choices.forEach((k, i) => {
+    const u = UPG[k], lv = up[k] || 0, b = document.createElement('button');
+    b.type = 'button'; b.className = 'card' + (k === 'gun' ? ' gun' : '');
+    let pips = '';
+    if (k !== 'gun' && k !== 'rest') for (let j = 1; j <= u.max; j++) pips += '<span class="pip' + (j <= lv + 1 ? ' on' : '') + '"></span>';
+    const lvTxt = k === 'gun' ? '只此一把' : k === 'rest' ? '補氣' : lv ? 'Lv' + lv + ' → Lv' + (lv + 1) : '新本事';
+    b.innerHTML = '<span class="key">' + (i + 1) + '<span class="tg">' + u.tag + '</span></span><span class="nm">' + u.name + '</span><span class="lv">' + lvTxt + pips + '</span>' +
+      '<span class="ds">' + u.desc(lv) + '</span>' + (u.note ? '<span class="nt">' + u.note + '</span>' : '');
+    b.onclick = () => choose(k);
+    box.appendChild(b);
+  });
+}
+function choose(k) {
+  if (mode !== 'round' || fresh(roundShownAt)) return;
+  audioInit(); sfx.pick();
+  up[k] = (up[k] || 0) + 1;
+  const top = { people: 'bros', multi: 'cata', eye: 'cruise', skip: 'skip' }[k]; if (top && up[k] >= UPG[k].max) award(top);
+  if (k === 'build') for (const p of players) { p.maxHp++; p.hp++; }
+  if (k === 'people') { const q = edge(1.6, rand(0.3, 0.7)); players.push(mkFighter('P', mySide, q.x, q.y, 3 + up.build)); }
+  $('ovRound').hidden = true;
+  if (k === 'rest') retries++;
+  healTeam();
+  level++; foeName = nextFoe; startRound(); mode = 'play';
+}
+// How far the fight has gone, 0..1, which sets how hard the music 催: the share of both sides' strength already
+// knocked out (every stone that lands on anyone counts), plus a push for each of our own people down.
+// A typical won round ends near 1; losing half our people gets there sooner.
+function battleHeat() {
+  let hp = 0; for (const f of fighters) if (!f.down) hp += Math.max(0, f.hp);
+  const lost = players.filter(p => p.down).length / Math.max(1, players.length);
+  return Math.min(1, 1.5 * (1 - hp / roundHp0) + 0.5 * lost);
+}
+function healTeam() { players.forEach(p => { p.down = false; p.downT = 0; p.reviveT = 0; p.hp = p.maxHp; p.state = 'idle'; p.wounds = []; p.skipThrow = false; }); }
+function roundWon() {
+  score += 100 * level; saveBest();
+  if (trk.retryLevel === level) award('heal');
+  if (level >= 7 && !trk.retries) award('god');
+  if (rs.mineKO > 0 && !rs.otherKO) award('ace');
+  if (!rs.taken) award('clean');
+  if (players.filter(p => !p.down).length === 1) award('lone');
+  runSave('');
+  mode = 'round'; ptr.down = false; ptr.grab = false; sfx.win();
+  $('rTitle').textContent = '第' + cnum(level) + '回 ' + myName + '勝';
+  nextFoe = pickFoe();
+  const nf = foeAt(level + 1);
+  $('rLead').textContent = '分數 ' + score + '，累計命中 ' + hits + ' 次。下一回對上' + nextFoe + '，' + nf.n + ' 人。' + foeNews(foe, nf) + '受傷的人到溪裡浸一浸水，全隊回滿氣力。';
+  $('rFact').textContent = nextFact();
+  choices = rollChoices(); renderCards();
+  const bt = buildText(); $('rBuild').textContent = bt ? '目前本事：' + bt : '';
+  $('ovRound').hidden = false; roundShownAt = performance.now(); $('cards').firstChild.focus({ preventScroll: true });
+  hudKey = '';
+}
+function gameOver() {
+  saveBest(); mode = 'over'; ptr.down = false; ptr.grab = false; sfx.lose(); overShownAt = performance.now();
+  runSave('敗陣'); const rk = runRank();
+  $('oRank').textContent = '本局 ' + score + ' 分' + (rk && rk <= 10 ? '，本機戰績第' + cnum(rk) + '名。' : '。');
+  $('oFact').textContent = nextFact();
+  const bt = buildText();
+  const can = retries > 0;
+  $('oLead').textContent = can ? '這一回打輸了。還可以重來 ' + retries + ' 次，本事都還在。'
+    : '撐過 ' + (level - 1) + ' 回，命中 ' + hits + ' 次，分數 ' + score + '。最高紀錄 ' + best + '。' + (bt ? '帶的本事：' + bt + '。' : '');
+  $('retryBtn').hidden = !can; $('retryBtn').textContent = '重來，再打第' + cnum(level) + '回';
+  $('againBtn').textContent = can ? '從頭再來' : '同一邊再來';
+  $('ovOver').hidden = false; (can ? $('retryBtn') : $('againBtn')).focus({ preventScroll: true });
+}
+function saveBest() { if (!trial && score > best) { best = score; try { localStorage.setItem('lukang-stone-best', String(best)); } catch (_) {} } }
+
+// ---------- input ----------
+const ptr = { down: false, grab: false, id: null, t0: 0, x: W / 2, y: H / 2, ox: 0, oy: 0 };
+function toWorld(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; }
+function pickPlayer(p) {
+  let bestF = null, bd = 1e9;
+  for (const f of players) {
+    if (f.down) continue;
+    if (Math.abs(p.x - f.x) < 17 && p.y > f.y - 50 && p.y < f.y + 10) { const d = Math.hypot(p.x - f.x, p.y - (f.y - 20)); if (d < bd) { bd = d; bestF = f; } }
+  }
+  return bestF;
+}
+function select(f) { if (f && !f.down) { if (sel && sel !== f && (sel.state === 'wind' || sel.state === 'aim')) { sel.state = 'idle'; sel.power = 0; } sel = f; hudKey = ''; } }
+// SnowCraft controls, one gesture: press on one of your people and hold.
+// While held they run after the cursor and wind up (power grows with time); release to throw
+// straight across the creek from wherever they now stand. A quick tap only selects.
+cv.addEventListener('pointerdown', e => {
+  audioInit();
+  if (finale && !finale.done) { e.preventDefault(); finale.skip = true; return; } // any click skips the close-up
+  if (mode !== 'play') return;
+  e.preventDefault();
+  const p = toWorld(e); ptr.x = p.x; ptr.y = p.y;
+  const f = pickPlayer(p);
+  if (!f) return;
+  select(f);
+  if (f.stun > 0) return;
+  if (f.state === 'wind') f.power = 0;
+  if (f.state === 'walk') f.state = 'idle';
+  f.prepT = 0; f.skipThrow = false;
+  ptr.down = true; ptr.grab = true; ptr.id = e.pointerId; ptr.t0 = performance.now();
+  ptr.ox = f.x - p.x; ptr.oy = f.y - p.y;
+  try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+  cv.style.cursor = 'grabbing';
+});
+cv.addEventListener('pointermove', e => {
+  const p = toWorld(e); ptr.x = p.x; ptr.y = p.y;
+  if (!ptr.down) cv.style.cursor = mode === 'ending' ? (ending && ending.ready && !ending.shown ? 'pointer' : 'default') : mode === 'play' && pickPlayer(p) ? 'grab' : 'default';
+});
+// click is the last event of a press, so nothing from this press can land on the sheet that opens
+cv.addEventListener('click', () => { if (mode === 'ending') goOn(); });
+cv.addEventListener('pointerup', e => {
+  if (!ptr.down || e.pointerId !== ptr.id) return;
+  const held = performance.now() - ptr.t0;
+  ptr.down = false; ptr.grab = false; cv.style.cursor = 'grab';
+  const s = sel;
+  if (s) s.manualT = 1.2;
+  if (!s || s.down || mode !== 'play') return;
+  if (s.state === 'aim') { if (held < 150 || s.aimT > 0) s.state = 'idle'; else fire(s); return; }
+  if (s.state !== 'wind') return;
+  if (held < 150 || s.pickT > 0) { s.state = 'idle'; s.power = 0; s.pickT = 0; return; }
+  playerThrow(s);
+});
+cv.addEventListener('pointercancel', () => { ptr.down = false; ptr.grab = false; if (sel && (sel.state === 'wind' || sel.state === 'aim')) { sel.state = 'idle'; sel.power = 0; } });
+window.addEventListener('keydown', e => {
+  if (e.target && e.target.tagName === 'INPUT') return;
+  if (e.key === 'Escape' && !$('ovHelp').hidden) { closeHelp(); return; }
+  if (finale && !finale.done && $('ovHelp').hidden) { if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); finale.skip = true; } return; }
+  if (mode === 'ending') { // Enter or Space also goes on; cancelling the key keeps it from pressing the button that gets focus
+    if ((e.key === 'Enter' || e.key === ' ') && $('ovHelp').hidden && !(e.target && e.target.tagName === 'BUTTON') && goOn()) e.preventDefault();
+    return;
+  }
+  if (mode === 'round' && !$('ovRound').hidden && $('ovHelp').hidden) { const j = '123'.indexOf(e.key); if (j >= 0 && choices[j]) choose(choices[j]); return; }
+  if (mode !== 'play' || paused) return;
+  const i = '123456789'.indexOf(e.key); if (i >= 0 && players[i]) select(players[i]);
+});
+let paused = false, helpReturn = null;
+function selectTab(id) {
+  document.querySelectorAll('.tabs [role="tab"]').forEach(o => { const on = o.id === id; o.setAttribute('aria-selected', on); $(o.getAttribute('aria-controls')).hidden = !on; });
+}
+function openHelp(tab) {
+  renderRank(); renderClips(); if (typeof tab === 'string') selectTab(tab);
+  helpReturn = document.activeElement; paused = true; ptr.down = false; ptr.grab = false;
+  if (sel && (sel.state === 'wind' || sel.state === 'aim')) { sel.state = 'idle'; sel.power = 0; }
+  $('ovHelp').hidden = false; $('helpClose').focus({ preventScroll: true }); music.hold(true);
+}
+function closeHelp() { $('ovHelp').hidden = true; paused = false; music.hold(false); if (helpReturn && helpReturn.focus) helpReturn.focus({ preventScroll: true }); }
+$('helpBtn').onclick = openHelp; $('helpFromTitle').onclick = openHelp; $('helpClose').onclick = closeHelp;
+$('ovHelp').addEventListener('pointerdown', e => { if (e.target === $('ovHelp')) closeHelp(); });
+document.querySelectorAll('.tabs [role="tab"]').forEach(t => t.addEventListener('click', () => selectTab(t.id)));
+for (const id of ['rankFromTitle', 'rankFromOver', 'endRank']) $(id).onclick = () => openHelp('tab-rank');
+function readName() {
+  let v = ($('teamName').value || '').replace(/\s+/g, '').replace(/[庄莊姓氏]+$/, '').slice(0, 4);
+  if (!v) v = $('teamName').placeholder.replace(/[庄莊姓氏]+$/, '');
+  myName = v + nameKind;
+}
+function setKind(k) {
+  nameKind = k; $('kindZ').setAttribute('aria-checked', k === '庄'); $('kindS').setAttribute('aria-checked', k === '氏');
+  $('teamName').placeholder = pickFrom(k === '庄' ? PLACES : SURNAMES);
+}
+$('kindZ').onclick = () => setKind('庄'); $('kindS').onclick = () => setKind('氏');
+$('teamName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); begin('shi', true); } });
+setKind('庄');
+function begin(side, fromTitle) { readName(); audioInit(); $('ovTitle').hidden = true; $('ovOver').hidden = true; $('ovEnd').hidden = true; $('goOn').hidden = true; newGame(side, fromTitle); mode = 'play'; hudKey = ''; }
+$('goOn').onclick = () => { goOn(); };
+$('pickShi').onclick = () => begin('shi', true);
+$('pickHx').onclick = () => begin('hx', true);
+$('againBtn').onclick = () => { if (!fresh(overShownAt)) begin(mySide); };
+$('retryBtn').onclick = () => { if (mode !== 'over' || retries <= 0 || fresh(overShownAt)) return; audioInit(); retries--; trk.retries++; trk.retryLevel = level; runSave(''); $('ovOver').hidden = true; healTeam(); startRound(); mode = 'play'; hudKey = ''; };
+$('swapBtn').onclick = () => { if (!fresh(overShownAt)) begin(foeSide); };
+const endFresh = () => performance.now() - endShownAt < 450;
+$('endAgain').onclick = () => { if (!endFresh()) begin(mySide); };
+$('endSwap').onclick = () => { if (!endFresh()) begin(foeSide); };
+$('mute').onclick = () => { muted = !muted; $('mute').textContent = '音效 ' + (muted ? '關' : '開'); $('mute').setAttribute('aria-pressed', muted); audioInit(); murmurLevel(); };
+
+// ---------- HUD ----------
+function renderHud() {
+  const foes = enemies.filter(e => !e.down).length;
+  const key = [mode, level, score, foes, retries].join('|');
+  if (key === hudKey) return; hudKey = key;
+  $('stats').hidden = mode === 'title' || mode === 'ending';
+  $('sRound').textContent = cnum(level); $('sFoes').textContent = foes; $('sScore').textContent = score; $('sRetry').textContent = retries;
+}
+
+// ---------- drawing: ink line work on paper; the print pass further down adds the grain of an old scanned page ----------
+const INK = '#1b1814', PAPER = '#ebe4d1', PAPER2 = '#ddd4be', SKIN = '#f1eadb', BLOOD = '#c41a12';
+let bg = null;
+function ell(x, y, rx, ry, fill) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill(); }
+function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); }
+function band(c, c1, c2) { c.beginPath(); for (let i = 0; i <= 40; i++) { const p = edge(c1, -0.05 + i / 40 * 1.1); i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y); } for (let i = 40; i >= 0; i--) { const p = edge(c2, -0.05 + i / 40 * 1.1); c.lineTo(p.x, p.y); } c.closePath(); }
+// parallel hatching clipped to a shape
+function hatch(c, clip, cx, cy, R, gap, ang, lw, a) {
+  c.save(); c.beginPath(); clip(c); c.clip();
+  c.strokeStyle = INK; c.globalAlpha *= a; c.lineWidth = lw;
+  const ca = Math.cos(ang), sa = Math.sin(ang);
+  c.beginPath();
+  for (let d = -R; d <= R; d += gap) { const px = cx - sa * d, py = cy + ca * d; c.moveTo(px - ca * R, py - sa * R); c.lineTo(px + ca * R, py + sa * R); }
+  c.stroke(); c.restore();
+}
+// outlined stroke: thick ink then a thinner inner colour, so a limb or band reads as drawn in outline
+function oStroke(w, inner, iw) { ctx.strokeStyle = INK; ctx.lineWidth = w; ctx.stroke(); ctx.strokeStyle = inner; ctx.lineWidth = iw; ctx.stroke(); }
+function hShadow(x, y, rx, ry) {
+  ctx.save(); ctx.strokeStyle = INK; ctx.globalAlpha *= 0.6; ctx.lineWidth = 0.9; ctx.beginPath();
+  for (let k = -ry + 1; k <= ry; k += 2.1) { const w = rx * Math.sqrt(Math.max(0, 1 - (k * k) / (ry * ry))); ctx.moveTo(x - w * 0.9, y + k); ctx.lineTo(x + w, y + k); }
+  ctx.stroke(); ctx.restore();
+}
+function grassTuft(c, x, y, R, n, h) {
+  c.beginPath();
+  for (let k = 0; k < n; k++) { const a = -Math.PI / 2 + (k - n / 2) * 0.28 + (R() - 0.5) * 0.25, l = h * (0.6 + R() * 0.6), bx = x + (k - n / 2) * 1.4; c.moveTo(bx, y); c.quadraticCurveTo(bx + Math.cos(a) * l * 0.4, y + Math.sin(a) * l * 0.6, bx + Math.cos(a) * l, y + Math.sin(a) * l); }
+  c.stroke();
+}
+// a tapered brush leaf, like the reeds cut into old woodblocks
+function blade(c, x, y, h, lean, w) {
+  c.beginPath(); c.moveTo(x - w, y);
+  c.quadraticCurveTo(x - w * 0.3 + lean * 0.25, y - h * 0.6, x + lean, y - h);
+  c.quadraticCurveTo(x + w * 0.6 + lean * 0.3, y - h * 0.5, x + w, y);
+  c.closePath(); c.fill();
+}
+
+function buildBg() {
+  bg = document.createElement('canvas'); bg.width = scene.width; bg.height = scene.height;
+  const b = bg.getContext('2d'); b.setTransform(scene.width / W, 0, 0, scene.height / H, 0, 0);
+  const R = mulberry(1729);
+  b.fillStyle = PAPER; b.fillRect(0, 0, W, H);
+  // woodcut ground texture: little groups of horizontal knife strokes
+  b.strokeStyle = INK; b.globalAlpha = 0.4; b.lineWidth = 0.9; b.lineCap = 'round'; b.beginPath();
+  for (let i = 0; i < 260; i++) {
+    const x = R() * W, y = 50 + R() * (H - 70); if (Math.abs(S(x, y) - 1) < RIV + 0.05) continue;
+    const n = 2 + Math.floor(R() * 3), l = 8 + R() * 20;
+    for (let k = 0; k < n; k++) { const yy = y + k * 3, xx = x + (R() - 0.5) * 4; b.moveTo(xx, yy); b.quadraticCurveTo(xx + l / 2, yy - 1 + R() * 2, xx + l, yy); }
+  }
+  b.stroke();
+  // trampled ground where the onlookers stand
+  b.globalAlpha = 0.35; b.lineWidth = 0.8; b.beginPath();
+  for (let y = 4; y < 52; y += 3) { const x0 = R() * 30; for (let x = x0; x < W; x += 26 + R() * 30) { b.moveTo(x, y); b.lineTo(x + 12 + R() * 18, y + (R() - 0.5)); } }
+  for (let y = H - 28; y < H; y += 3) { const x0 = R() * 30; for (let x = x0; x < W; x += 26 + R() * 30) { b.moveTo(x, y); b.lineTo(x + 12 + R() * 18, y + (R() - 0.5)); } }
+  b.stroke(); b.globalAlpha = 1;
+  // shaded strips along both banks, cut as lines that follow the creek
+  b.save(); band(b, 1 - RIV - 0.075, 1 - RIV - 0.01); band(b, 1 + RIV + 0.01, 1 + RIV + 0.075); b.clip();
+  b.globalAlpha = 0.45; b.lineWidth = 0.8; b.beginPath();
+  for (let c = 1 - RIV - 0.075; c < 1 + RIV + 0.08; c += 0.0042) {
+    let on = R() < 0.8;
+    for (let i = 0; i <= 30; i++) { const p = edge(c + (R() - 0.5) * 0.001, -0.05 + i / 30 * 1.1); if (R() < 0.12) on = !on; on ? b.lineTo(p.x, p.y) : b.moveTo(p.x, p.y); }
+  }
+  b.stroke(); b.restore(); b.globalAlpha = 1;
+  // footpaths: two faint dashed edges each
+  b.save(); b.setLineDash([5, 6]); b.strokeStyle = INK; b.globalAlpha = 0.45; b.lineWidth = 1;
+  for (const c of [0.36, 1.64]) for (const off of [-0.011, 0.011]) {
+    b.beginPath(); for (let i = 0; i <= 50; i++) { const u = -0.05 + i / 50 * 1.1, p = edge(c + off + 0.03 * Math.sin(u * 9 + c * 5), u); i ? b.lineTo(p.x, p.y) : b.moveTo(p.x, p.y); } b.stroke();
+  }
+  b.restore();
+  // pebbles on the banks
+  b.strokeStyle = INK; b.lineWidth = 1;
+  for (let i = 0; i < 160; i++) {
+    const side = R() < 0.5 ? -1 : 1, p = edge(1 + side * (RIV + 0.006 + R() * 0.028), R());
+    b.fillStyle = R() < 0.3 ? INK : PAPER; b.beginPath(); b.ellipse(p.x, p.y, 1.6 + R() * 2.8, 1.2 + R() * 1.8, R() * 3, 0, Math.PI * 2); b.fill(); b.stroke();
+  }
+  // old flattened earth graves
+  for (let i = 0; i < 34; i++) {
+    const x = 20 + R() * (W - 40), y = 56 + R() * (H - 96);
+    if (Math.abs(S(x, y) - 1) < RIV + 0.08) continue;
+    const rx = 12 + R() * 9, ry = 5 + R() * 3;
+    b.fillStyle = PAPER2; b.beginPath(); b.ellipse(x, y, rx, ry, 0, Math.PI, 0); b.closePath(); b.fill();
+    b.strokeStyle = INK; b.lineWidth = 1.1; b.beginPath(); b.ellipse(x, y, rx, ry, 0, Math.PI, 0); b.stroke();
+    b.lineWidth = 0.8; grassTuft(b, x - rx * 0.3, y - ry * 0.8, R, 3, 4); grassTuft(b, x + rx * 0.4, y - ry * 0.6, R, 2, 3);
+    if (R() < 0.4) { b.fillStyle = PAPER; b.fillRect(x - 2.5, y - ry - 5, 5, 7); b.lineWidth = 1; b.strokeRect(x - 2.5, y - ry - 5, 5, 7); }
+  }
+  // loose stone piles
+  b.lineWidth = 1;
+  for (let i = 0; i < 26; i++) {
+    const x = 20 + R() * (W - 40), y = 56 + R() * (H - 96);
+    if (Math.abs(S(x, y) - 1) < RIV + 0.05) continue;
+    const n = 3 + Math.floor(R() * 4);
+    for (let k = 0; k < n; k++) { const sx = x + (R() - 0.5) * 12, sy = y + (R() - 0.5) * 5; b.fillStyle = k % 3 ? PAPER : PAPER2; b.beginPath(); b.ellipse(sx, sy, 2.2 + R() * 2.4, 1.6 + R() * 1.6, R() * 3, 0, Math.PI * 2); b.fill(); b.stroke(); }
+  }
+  // grass tufts
+  b.strokeStyle = INK;
+  for (let i = 0; i < 230; i++) {
+    const x = R() * W, y = 50 + R() * (H - 70);
+    if (Math.abs(S(x, y) - 1) < RIV + 0.04) continue;
+    b.lineWidth = 0.8 + R() * 0.6; grassTuft(b, x, y, R, 3 + Math.floor(R() * 3), 6 + R() * 5);
+  }
+  // reeds along both banks: clumps of long tapered black leaves
+  b.fillStyle = INK;
+  for (let i = 0; i < 64; i++) {
+    const side = R() < 0.5 ? -1 : 1, p = edge(1 + side * (RIV + 0.024 + R() * 0.018), R());
+    const n = 4 + Math.floor(R() * 4);
+    for (let k = 0; k < n; k++) {
+      const h = 14 + R() * 24, lean = (R() - 0.5) * 22, x = p.x + (k - n / 2) * 2.2;
+      blade(b, x, p.y, h, lean, 0.9 + R() * 1.1);
+      if (R() < 0.18) { b.beginPath(); b.ellipse(x + lean * 0.5, p.y - h * 0.75, 1.7, 4.2, lean * 0.03, 0, Math.PI * 2); b.fill(); }
+    }
+  }
+}
+
+function riverEdge(c, i, t, k, ph) { const u = -0.05 + i / 60 * 1.1; return edge(c + 0.006 * Math.sin(u * k + ph + t * 1.1), u); }
+// the creek: rows of long broken wavy strokes of varying weight, as in the reference print
+function drawRiver() {
+  const t = time;
+  const path = new Path2D();
+  for (let i = 0; i <= 60; i++) { const p = riverEdge(1 - RIV, i, t, 14, 0); i ? path.lineTo(p.x, p.y) : path.moveTo(p.x, p.y); }
+  for (let i = 60; i >= 0; i--) { const p = riverEdge(1 + RIV, i, t, 13, 1); path.lineTo(p.x, p.y); }
+  path.closePath();
+  ctx.fillStyle = '#e8e1ce'; ctx.fill(path);
+  ctx.save(); ctx.clip(path);
+  ctx.strokeStyle = INK; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const rows = 15;
+  for (let r = 0; r < rows; r++) {
+    const c = 1 - RIV * 0.97 + r * (RIV * 1.94 / (rows - 1));
+    let run = [];
+    const flush = () => {
+      if (run.length > 2) {
+        const um = run[run.length >> 1].u;
+        ctx.lineWidth = 0.9 + 1.4 * (0.5 + 0.5 * Math.sin(um * 23 + r * 1.7)) * (r < 5 ? 1 : 0.75);
+        ctx.beginPath(); run.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
+      }
+      run = [];
+    };
+    for (let i = 0; i <= 150; i++) {
+      const u = -0.05 + i / 150 * 1.1;
+      const on = Math.sin(u * 31 + r * 7.3 - t * 0.5) + Math.sin(u * 71 + r * 2.1 + t * 0.35) > -0.45;
+      if (on) { const p = edge(c + 0.0045 * Math.sin(u * 95 + r * 1.9 - t * 2.4), u); p.u = u; run.push(p); } else flush();
+    }
+    flush();
+  }
+  ctx.restore();
+  ctx.strokeStyle = INK; ctx.lineWidth = 2.2;
+  ctx.beginPath(); for (let i = 0; i <= 60; i++) { const p = riverEdge(1 - RIV, i, t, 14, 0); i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y); } ctx.stroke();
+  ctx.beginPath(); for (let i = 0; i <= 60; i++) { const p = riverEdge(1 + RIV, i, t, 13, 1); i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y); } ctx.stroke();
+}
+
+// 掛紙: grave papers on the mound, weighed down with pebbles
+function drawPaper(t, x, y, w) {
+  const n = t.kind === 'big' ? 6 : 4;
+  ctx.lineWidth = 1;
+  for (let i = 0; i < n; i++) {
+    const px = x - w + (i + 0.5) * (2 * w / n) + Math.sin(t.seed * 9 + i) * 3;
+    const py = y - 2 - (1 - Math.abs((i + 0.5) / n * 2 - 1)) * (t.kind === 'big' ? 14 : 8);
+    const flap = Math.sin(time * 6 + t.seed * 20 + i) * 1.2;
+    ctx.save(); ctx.translate(px, py); ctx.rotate(Math.sin(t.seed * 5 + i * 1.7) * 0.4);
+    ctx.beginPath(); ctx.moveTo(-3, -4); ctx.lineTo(3, -4 + flap * 0.3); ctx.lineTo(3, 4 + flap); ctx.lineTo(-3, 4); ctx.closePath();
+    const kind = (i + Math.floor(t.seed * 6)) % 3;
+    ctx.fillStyle = PAPER; ctx.fill(); ctx.strokeStyle = INK; ctx.stroke();
+    if (kind === 2) { ctx.beginPath(); ctx.moveTo(-1.2, -1.5); ctx.lineTo(-1.2, 3); ctx.moveTo(1.2, -1.5); ctx.lineTo(1.2, 3.5); ctx.stroke(); }
+    ctx.fillStyle = PAPER2; ctx.beginPath(); ctx.arc(0, -3, 1.6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+}
+function moundPath(c, x, y, rx, ry) { c.ellipse(x, y, rx, ry, 0, Math.PI, 0); c.lineTo(x + rx, y + 2); c.lineTo(x - rx, y + 2); c.closePath(); }
+function drawMound(x, y, rx, ry, seed) {
+  ctx.beginPath(); moundPath(ctx, x, y, rx, ry); ctx.fillStyle = PAPER2; ctx.fill();
+  hatch(ctx, c => moundPath(c, x, y, rx, ry), x + rx * 0.55, y - ry * 0.3, rx * 0.6, 2.4, 1.0, 0.9, 0.75);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, Math.PI, 0); ctx.stroke();
+  ctx.lineWidth = 1; ctx.beginPath();
+  for (let i = 0; i < 6; i++) { const gx = x - rx * 0.8 + i * rx * 0.32, gy = y - ry * Math.sqrt(Math.max(0, 1 - Math.pow((gx - x) / rx, 2))) + 1; ctx.moveTo(gx, gy); ctx.lineTo(gx - 2 + Math.sin(seed * 10 + i) * 2, gy - 5); ctx.moveTo(gx, gy); ctx.lineTo(gx + 2, gy - 4); }
+  ctx.stroke();
+}
+function drawTomb(t) {
+  if (t.kind === 'small' || t.kind === 'broken') return drawSmallTomb(t);
+  if (t.kind === 'houtu') return drawHoutu(t);
+  const x = t.x, y = t.y;
+  hShadow(x + 8, y + 5, 36, 6);
+  drawMound(x, y - 4, 34, 17, t.seed);
+  // 墓手 wings in outline
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x - 13, y - 2); ctx.quadraticCurveTo(x - 24, y, x - 30, y + 5); oStroke(5.8, PAPER, 2.8);
+  ctx.beginPath(); ctx.moveTo(x + 13, y - 2); ctx.quadraticCurveTo(x + 24, y, x + 30, y + 5); oStroke(5.8, PAPER, 2.8);
+  ctx.fillStyle = PAPER; ctx.fillRect(x - 16, y - 1, 32, 6); ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.strokeRect(x - 16, y - 1, 32, 6);
+  const tab = c => { c.moveTo(x - 11, y); c.lineTo(x - 11, y - 26); c.quadraticCurveTo(x - 11, y - 35, x, y - 35); c.quadraticCurveTo(x + 11, y - 35, x + 11, y - 26); c.lineTo(x + 11, y); c.closePath(); };
+  ctx.beginPath(); tab(ctx); ctx.fillStyle = PAPER; ctx.fill();
+  hatch(ctx, tab, x + 9, y - 16, 20, 2.1, Math.PI / 2, 0.9, 0.85);
+  ctx.beginPath(); tab(ctx); ctx.strokeStyle = INK; ctx.lineWidth = 1.7; ctx.stroke();
+  // carved inscription
+  ctx.lineWidth = 1.2; ctx.beginPath();
+  for (let k = 0; k < 5; k++) { const yy = y - 29 + k * 5; ctx.moveTo(x - 3, yy); ctx.lineTo(x + 1, yy); ctx.moveTo(x - 1, yy - 1.5); ctx.lineTo(x - 1, yy + 2); }
+  ctx.moveTo(x - 7, y - 24); ctx.lineTo(x - 7, y - 13); ctx.stroke();
+  if (t.paper) drawPaper(t, x, y - 4, 26);
+}
+function drawSmallTomb(t) {
+  const x = t.x, y = t.y, broken = t.kind === 'broken';
+  hShadow(x + 6, y + 4, 26, 5);
+  drawMound(x, y - 1, 24, 11, t.seed);
+  ctx.save(); ctx.translate(x, y + 1); if (broken) ctx.rotate(-0.22 + t.seed * 0.1);
+  const h = broken ? 15 : 21;
+  const tab = c => { c.moveTo(-7, 0); c.lineTo(-7, -h + 4);
+    if (broken) { c.lineTo(-3, -h); c.lineTo(0, -h + 5); c.lineTo(4, -h + 1); c.lineTo(7, -h + 4); }
+    else { c.quadraticCurveTo(-7, -h, 0, -h); c.quadraticCurveTo(7, -h, 7, -h + 4); }
+    c.lineTo(7, 0); c.closePath(); };
+  ctx.beginPath(); tab(ctx); ctx.fillStyle = PAPER; ctx.fill();
+  hatch(ctx, tab, 6, -h / 2, h, 2.1, Math.PI / 2, 0.9, 0.8);
+  ctx.beginPath(); tab(ctx); ctx.strokeStyle = INK; ctx.lineWidth = 1.6; ctx.stroke();
+  ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(-1, -h + 6); ctx.lineTo(-1, -3);
+  if (broken) { ctx.moveTo(-6, -8); ctx.lineTo(-1, -6); ctx.lineTo(2, -10); }
+  ctx.stroke();
+  ctx.restore();
+  if (broken) { ctx.beginPath(); ctx.moveTo(x + 12, y + 4); ctx.lineTo(x + 18, y + 2); ctx.lineTo(x + 19, y + 6); ctx.lineTo(x + 13, y + 7); ctx.closePath(); ctx.fillStyle = PAPER; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke(); }
+  if (t.paper) drawPaper(t, x, y - 2, 18);
+}
+function drawHoutu(t) {
+  const x = t.x, y = t.y;
+  hShadow(x + 4, y + 3, 14, 3);
+  ctx.fillStyle = PAPER; ctx.fillRect(x - 11, y - 2, 22, 5); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.strokeRect(x - 11, y - 2, 22, 5);
+  rr(ctx, x - 8, y - 24, 16, 23, 3); ctx.fillStyle = PAPER; ctx.fill(); ctx.lineWidth = 1.6; ctx.stroke();
+  ctx.lineWidth = 1.1; ctx.beginPath(); // carved inscription strokes
+  ctx.moveTo(x - 3, y - 20); ctx.lineTo(x + 3, y - 20); ctx.moveTo(x - 1, y - 21); ctx.lineTo(x - 2, y - 15); ctx.moveTo(x - 1, y - 17); ctx.lineTo(x + 3, y - 17);
+  ctx.moveTo(x, y - 12); ctx.lineTo(x, y - 6); ctx.moveTo(x - 3, y - 10); ctx.lineTo(x + 3, y - 10); ctx.moveTo(x - 4, y - 6); ctx.lineTo(x + 4, y - 6);
+  ctx.stroke();
+  ctx.lineWidth = 1; ctx.beginPath();
+  for (const dx of [-3, 0, 3]) { ctx.moveTo(x + dx, y + 2); ctx.lineTo(x + dx * 1.4, y - 6); }
+  ctx.stroke();
+  const sm = Math.sin(time * 2 + t.seed * 9) * 2;
+  ctx.globalAlpha = 0.5; ctx.lineWidth = 0.9;
+  ctx.beginPath(); ctx.moveTo(x, y - 7); ctx.quadraticCurveTo(x + sm, y - 14, x - sm, y - 22); ctx.quadraticCurveTo(x - sm * 2, y - 27, x + sm, y - 31); ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+function strawHat(cx, cy, s) { // 斗笠 with woven crosshatch
+  const cone = c => { c.moveTo(cx - 13 * s, cy); c.lineTo(cx, cy - 9 * s); c.lineTo(cx + 13 * s, cy); c.quadraticCurveTo(cx, cy + 4 * s, cx - 13 * s, cy); c.closePath(); };
+  ctx.beginPath(); cone(ctx); ctx.fillStyle = PAPER; ctx.fill();
+  hatch(ctx, cone, cx, cy - 3 * s, 14 * s, 2.3, 0.55, 0.7, 0.85);
+  hatch(ctx, cone, cx, cy - 3 * s, 14 * s, 2.3, -0.55, 0.7, 0.85);
+  ctx.beginPath(); cone(ctx); ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.stroke();
+}
+// Hatch patterns for the onlookers' clothes, drawn once; patterns follow the canvas transform, so they scale with the field.
+const robePats = [];
+function robePattern(i) {
+  if (robePats[i]) return robePats[i];
+  const t = document.createElement('canvas'); t.width = t.height = 16;
+  const g = t.getContext('2d'); g.fillStyle = PAPER; g.fillRect(0, 0, 16, 16); g.strokeStyle = INK; g.lineWidth = 1.8; g.globalAlpha = 0.9; g.beginPath();
+  if (i === 1) { for (const x of [2.5, 7.8, 13.1]) { g.moveTo(x, 0); g.lineTo(x, 16); } }
+  else { for (let k = -16; k <= 16; k += 8) { g.moveTo(k, 16); g.lineTo(k + 16, 0); } if (i === 2) for (let k = -16; k <= 16; k += 8) { g.moveTo(k, 0); g.lineTo(k + 16, 16); } }
+  g.stroke();
+  const pat = ctx.createPattern(t, 'repeat');
+  try { pat.setTransform(new DOMMatrix([0.36, 0, 0, 0.36, 0, 0])); } catch (_) {}
+  return (robePats[i] = pat);
+}
+// Onlookers wear grey (hatched in the front rows) so they never read as either camp.
+// They sway, hop and shake fists all the time; after a hit they jump, lean toward it and press in.
+function drawDeadOnlooker(c) {
+  ctx.save(); ctx.translate(c.x, c.y); ctx.scale(c.row, c.row); ctx.lineCap = 'round';
+  hShadow(0, 1, 22, 3);
+  ctx.beginPath(); ctx.moveTo(6, -4); ctx.lineTo(17, -3); ctx.moveTo(6, -1); ctx.lineTo(17, 1); oStroke(5, PAPER, 2.4);
+  ctx.beginPath(); ctx.moveTo(-6, -9); ctx.lineTo(-9, -19); oStroke(5, SKIN, 2.6);
+  rr(ctx, -10, -10, 18, 11, 4); ctx.fillStyle = robePattern(c.st); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(-17, -5, 6.5, 0, Math.PI * 2); ctx.fillStyle = SKIN; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.stroke();
+  ctx.lineWidth = 1.1; ctx.beginPath();
+  for (const ex of [-19, -15]) { ctx.moveTo(ex - 1.2, -7); ctx.lineTo(ex + 1.2, -4.8); ctx.moveTo(ex + 1.2, -7); ctx.lineTo(ex - 1.2, -4.8); }
+  ctx.stroke();
+  ctx.restore();
+}
+function drawOnlooker(c) {
+  if (c.dead) return drawDeadOnlooker(c);
+  const running = ending && c.flee && ending.t > c.react;
+  const fv = fever, t = time * c.sp, burst = cheer > 0 ? Math.min(1, cheer) : 0;
+  const lean = lastHit ? Math.max(-1, Math.min(1, (lastHit.x - c.x) / 260)) * fv * 6 : 0;
+  const surge = (c.y < H / 2 ? 1 : -1) * fv * 2.5;
+  const jump = running ? Math.abs(Math.sin(t * 15 + c.ph)) * 3 : Math.abs(Math.sin(t * (5 + 7 * fv) + c.ph)) * (0.7 + 3.2 * fv + 3 * burst);
+  const s = c.row * (c.kid ? 0.78 : 1);
+  const x = running ? c.x + c.ox : c.x + lean + Math.sin(t * 2.1 + c.ph) * 1.4, y = running ? c.y + c.oy : c.y + surge;
+  if (x < -30 || x > W + 30 || y < -60 || y > H + 70) return;
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  if (c.front) hShadow(2, 0, 10, 3);
+  ctx.translate(0, -jump / s);
+  ctx.lineCap = 'round';
+  const stride = running ? Math.sin(t * 15 + c.ph) * 4 : 0;
+  ctx.beginPath(); ctx.moveTo(-3, -11); ctx.lineTo(-3 + stride, -1); ctx.moveTo(3, -11); ctx.lineTo(3 - stride, -1);
+  if (c.front) oStroke(5, PAPER, 2.4); else { ctx.strokeStyle = INK; ctx.lineWidth = 3.4; ctx.stroke(); }
+  // arms: fist pumping, both arms up, or hands cupped to shout; some wave a bamboo pole
+  const pump = Math.sin(t * (8 + 8 * fv) + c.ph), up = Math.max(0, pump);
+  let L, R;
+  if (running) { const fl = Math.sin(t * 13 + c.ph) * 5; L = [-12, -42 + fl]; R = [12, -42 - fl]; }
+  else if (c.thr && time - c.thr < 0.35) { L = [-10, -16]; R = [13, -48]; }
+  else if (c.stick) { L = [-7, -42 + pump * 3]; R = [7, -44 - pump * 3]; }
+  else if (c.mood < 0.4) { L = [-10, -14]; R = [9 + pump * 1.5, -36 - 8 * up - 6 * fv]; }
+  else if (c.mood < 0.7) { const hi = fv > 0.45 || burst > 0; L = hi ? [-12, -42 - 4 * up] : [-10, -15]; R = hi ? [12, -42 - 4 * (1 - up)] : [10 + pump * 3, -24]; }
+  else { L = [-4, -33]; R = [4, -33]; }
+  ctx.beginPath(); ctx.moveTo(-8, -26); ctx.lineTo(L[0], L[1]); ctx.moveTo(8, -26); ctx.lineTo(R[0], R[1]); oStroke(5, SKIN, 2.6);
+  if (c.stick && !running) { ctx.beginPath(); ctx.moveTo(-16, -50 + pump * 5); ctx.lineTo(16, -42 - pump * 5); ctx.strokeStyle = INK; ctx.lineWidth = 2.4; ctx.stroke(); }
+  const robe = q => rr(q, -9, -30, 18, 21, 5);
+  robe(ctx); ctx.fillStyle = c.front ? robePattern(c.st) : '#a39b8c'; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, -37, 7, 0, Math.PI * 2); ctx.fillStyle = SKIN; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.stroke();
+  if (c.hat) strawHat(0, -40, 0.85);
+  else if (c.bun) { ctx.fillStyle = INK; ctx.beginPath(); ctx.ellipse(0, -41, 7, 4, 0, Math.PI, 0); ctx.fill(); ctx.beginPath(); ctx.arc(-c.face * 6, -40, 3.6, 0, Math.PI * 2); ctx.fill(); }
+  else { ctx.fillStyle = INK; ctx.beginPath(); ctx.ellipse(-c.face * 1.5, -40, 6, 4, 0, Math.PI, 0); ctx.fill(); }
+  ctx.fillStyle = INK;
+  if (c.front) for (const ex of [-2.3, 2.3]) { ctx.beginPath(); ctx.arc(ex, -36.5, 0.95, 0, Math.PI * 2); ctx.fill(); }
+  const yell = running ? 2.3 : 0.6 + 1.4 * Math.max(fv, burst) * (0.6 + 0.4 * Math.abs(pump)); // yelling mouths
+  ctx.beginPath(); ctx.ellipse(0, -33, 1.6, yell, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+function drawFlag(x, y, side) {
+  const T = TEAMS[side];
+  hShadow(x + 3, y + 2, 9, 2.5);
+  ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - 104); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x, y - 106, 3, 0, Math.PI * 2); ctx.fillStyle = PAPER; ctx.fill(); ctx.lineWidth = 1.2; ctx.stroke();
+  const top = y - 100, w = 42, h = 62, n = 10;
+  const wav = i => Math.sin(time * 3.2 - i * 0.7) * (i / n) * 4;
+  ctx.beginPath(); ctx.moveTo(x + 1, top);
+  for (let i = 1; i <= n; i++) ctx.lineTo(x + 1 + i / n * w, top + wav(i));
+  for (let k = 0; k <= 6; k++) { const yy = top + k / 6 * h; ctx.lineTo(x + 1 + w + wav(n) * 0.5 + (k % 2 ? -5 : 0), yy + wav(n)); }
+  for (let i = n; i >= 0; i--) ctx.lineTo(x + 1 + i / n * w, top + h + wav(i));
+  ctx.closePath();
+  ctx.fillStyle = T.dark ? INK : PAPER; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.8; ctx.stroke();
+}
+
+// ---------- the fighters ----------
+// Both camps wear the same clothes: a head wrap, a side-fastened jacket with a sash, wide trousers and a queue.
+// Only the cloth colour differs: 施 in black with the details cut out in white, like a woodblock; 黃 in white with inked details.
+function clothStroke(dark, w) { if (dark) { ctx.strokeStyle = INK; ctx.lineWidth = w; ctx.stroke(); } else oStroke(w, PAPER, w - 2.8); }
+function skinStroke(w) { oStroke(w, SKIN, w - 2.6); }
+function limb(sx, sy, hx, hy, dark) {
+  ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(hx, hy); skinStroke(4.8);
+  ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + (hx - sx) * 0.62, sy + (hy - sy) * 0.62); clothStroke(dark, 6.8);
+}
+// an irregular blot; squash < 1 flattens it onto the ground plane
+function blob(c, x, y, r, seed, elong, ang, squash) {
+  c.save(); c.translate(x, y); c.rotate(ang || 0); c.scale(elong || 1, squash || 1);
+  c.beginPath();
+  for (let i = 0; i <= 10; i++) {
+    const a = i / 10 * Math.PI * 2, rr2 = r * (0.8 + 0.28 * Math.sin(seed * 7.1 + i * 2.3) + 0.14 * Math.sin(seed * 3.3 + i * 5.1));
+    const px = Math.cos(a) * rr2, py = Math.sin(a) * rr2; i ? c.lineTo(px, py) : c.moveTo(px, py);
+  }
+  c.closePath(); c.fill(); c.restore();
+}
+function wound(x, y, r, s, drip) {
+  ctx.fillStyle = BLOOD; blob(ctx, x, y, r, s, 1, 0, 0.85);
+  if (drip) {
+    ctx.strokeStyle = BLOOD; ctx.lineWidth = r * 0.8; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 0.7, y + r * 2, x + 0.4, y + r * 3.4); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x + 0.4, y + r * 3.5, r * 0.5, 0, Math.PI * 2); ctx.fill();
+  }
+}
+// P = { hip, sw, qs, back:[x,y], front:[x,y], stone, hurt, out }
+function body(f, dark, P) {
+  const F = f.face, cloth = dark ? INK : PAPER, cut = dark ? PAPER : INK;
+  const hip = P.hip, sw = P.sw, ty = hip - 19, hy = ty - 8;
+  // wide trousers to mid-calf, bare shins, straw sandals
+  ctx.beginPath(); ctx.moveTo(-4, hip); ctx.lineTo(-4 + sw, -6); ctx.moveTo(4, hip); ctx.lineTo(4 - sw, -6); clothStroke(dark, 7.8);
+  ctx.beginPath(); ctx.moveTo(-4 + sw, -5.5); ctx.lineTo(-4 + sw, -1.6); ctx.moveTo(4 - sw, -5.5); ctx.lineTo(4 - sw, -1.6); skinStroke(4.8);
+  ctx.strokeStyle = INK; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(-6.8 + sw, 0); ctx.lineTo(-1.6 + sw, 0); ctx.moveTo(1.6 - sw, 0); ctx.lineTo(6.8 - sw, 0); ctx.stroke();
+  // back arm, with the stone when winding up
+  limb(-F * 6.5, ty + 3.5, P.back[0], P.back[1], dark);
+  if (P.stone) { ctx.beginPath(); ctx.arc(P.back[0], P.back[1] - 1, 3.8, 0, Math.PI * 2); ctx.fillStyle = PAPER2; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.stroke(); }
+  // queue hanging down the back
+  ctx.beginPath(); ctx.moveTo(-F * 3.5, hy + 2); ctx.quadraticCurveTo(-F * 9.5, hy + 9, -F * 8 + P.qs, hy + 21);
+  ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.stroke();
+  ctx.beginPath(); ctx.arc(-F * 8 + P.qs, hy + 22, 1.7, 0, Math.PI * 2); ctx.fillStyle = INK; ctx.fill();
+  // jacket
+  const jk = c => { c.moveTo(-8.5, ty + 1.5); c.quadraticCurveTo(0, ty - 2, 8.5, ty + 1.5); c.lineTo(10.5, hip + 3.5); c.quadraticCurveTo(0, hip + 6, -10.5, hip + 3.5); c.closePath(); };
+  ctx.beginPath(); jk(ctx); ctx.fillStyle = cloth; ctx.fill();
+  ctx.strokeStyle = cut; ctx.lineWidth = 1.1; ctx.beginPath();
+  ctx.moveTo(-6.6, ty + 5); ctx.quadraticCurveTo(-7.3, ty + 11, -6.8, hip); ctx.moveTo(-3.9, ty + 9); ctx.lineTo(-4.3, hip);
+  ctx.stroke();
+  ctx.beginPath(); jk(ctx); ctx.strokeStyle = INK; ctx.lineWidth = 1.9; ctx.stroke();
+  // side fastening (大襟) with knotted buttons, then the sash
+  ctx.strokeStyle = cut; ctx.lineWidth = 1.3;
+  ctx.beginPath(); ctx.moveTo(-F * 1.5, ty - 0.2); ctx.quadraticCurveTo(F * 5.5, ty + 1.5, F * 6.2, ty + 8); ctx.lineTo(F * 6.8, hip - 1.5); ctx.stroke();
+  ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(F * 4.6, ty + 4.5); ctx.lineTo(F * 8, ty + 4); ctx.moveTo(F * 5, ty + 10); ctx.lineTo(F * 8.6, ty + 10); ctx.stroke();
+  ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-9.8, hip - 0.6); ctx.lineTo(9.8, hip - 0.6); ctx.moveTo(-10.2, hip + 2.2); ctx.lineTo(10.2, hip + 2.2); ctx.stroke();
+  // front arm
+  limb(F * 6.5, ty + 3.5, P.front[0], P.front[1], dark);
+  if (P.stoneFront) { ctx.beginPath(); ctx.arc(P.front[0] + F * 1.5, P.front[1] + 1, 3.8, 0, Math.PI * 2); ctx.fillStyle = PAPER2; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.stroke(); }
+  // head and head wrap
+  ctx.beginPath(); ctx.arc(0, hy, 6.8, 0, Math.PI * 2); ctx.fillStyle = SKIN; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.7; ctx.stroke();
+  const wr = c => { c.moveTo(-7.4, hy - 1); c.bezierCurveTo(-8, hy - 11, 8, hy - 11, 7.4, hy - 1); c.quadraticCurveTo(0, hy - 3.6, -7.4, hy - 1); c.closePath(); };
+  ctx.beginPath(); wr(ctx); ctx.fillStyle = cloth; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.6; ctx.stroke();
+  ctx.strokeStyle = cut; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-5, hy - 4); ctx.quadraticCurveTo(0, hy - 6.6, 5, hy - 4); ctx.stroke();
+  const fl = Math.sin(time * 9 + f.x) * 1.6;
+  ctx.beginPath(); ctx.moveTo(-F * 6.6, hy - 3.5); ctx.lineTo(-F * 12, hy - 6.5 + fl); ctx.moveTo(-F * 6.6, hy - 3.5); ctx.lineTo(-F * 11, hy - 0.5 + fl); clothStroke(dark, 3.8);
+  // face, turned toward where he faces
+  const ex = F * 1.8;
+  ctx.fillStyle = INK; ctx.strokeStyle = INK;
+  if (P.scared) {
+    for (const dx of [-2.3, 2.3]) { ctx.beginPath(); ctx.arc(ex + dx, hy + 0.2, 1.35, 0, Math.PI * 2); ctx.fill(); }
+    ctx.beginPath(); ctx.ellipse(ex, hy + 4, 1.5, 2.2, 0, 0, Math.PI * 2); ctx.fill();
+  } else if (P.hurt || P.out) {
+    ctx.lineWidth = 1.1;
+    for (const dx of [-2.3, 2.3]) { const cx = ex + dx; ctx.beginPath(); ctx.moveTo(cx - 1.3, hy - 0.6); ctx.lineTo(cx + 1.3, hy + 1.7); ctx.moveTo(cx + 1.3, hy - 0.6); ctx.lineTo(cx - 1.3, hy + 1.7); ctx.stroke(); }
+    ctx.beginPath(); ctx.ellipse(ex, hy + 3.9, 1.3, 1.6, 0, 0, Math.PI * 2); ctx.fill();
+  } else {
+    for (const dx of [-2.3, 2.3]) { ctx.beginPath(); ctx.arc(ex + dx, hy + 0.5, 1, 0, Math.PI * 2); ctx.fill(); }
+    ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ex - 3.5, hy - 1.7); ctx.lineTo(ex - 1.2, hy - 2.1); ctx.moveTo(ex + 1.2, hy - 2.1); ctx.lineTo(ex + 3.5, hy - 1.7);
+    ctx.moveTo(ex - 1.4, hy + 3.7); ctx.lineTo(ex + 1.4, hy + 3.7); ctx.stroke();
+  }
+  // where the stones landed
+  for (const wd of f.wounds) wound(wd.x, (wd.head ? hy : ty) + wd.y, wd.r, wd.s, wd.head);
+  if (P.hat) strawHat(0, hy - 4, 1.05);
+}
+function drawFighter(f) {
+  const dark = TEAMS[f.side].dark, x = f.x, y = f.y, F = f.face;
+  if (f.down) { // lying where he fell, head away from the way he faced
+    hShadow(x, y + 1, 26, 4.5);
+    ctx.save(); ctx.translate(x + F * 24, y - 5); ctx.rotate(-F * Math.PI / 2); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    body(f, dark, { hip: -15, sw: 1.5, qs: 0, back: [-F * 13, -49], front: [F * 14, -47], out: true });
+    ctx.restore();
+    return;
+  }
+  if (x < -40 || x > W + 40 || y < -20 || y > H + 90) return;
+  if (f.state === 'aim' || f.state === 'fire') return drawGunman(f, dark);
+  hShadow(x + 3, y + 1, 13, 4);
+  if (f.state === 'surrender') drawDroppedGun(x - F * 18, y + 3);
+  if (f === sel && mode === 'play') {
+    ctx.save(); ctx.setLineDash([4, 3]); ctx.lineDashOffset = -time * 20; ctx.strokeStyle = INK; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.ellipse(x, y, 19, 8, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  }
+  const fleeing = f.state === 'flee', cower = f.state === 'cower', surr = f.state === 'surrender';
+  const walking = f.state === 'walk' || f.moving || fleeing, gait = fleeing ? 16 : 11;
+  const sw = walking ? Math.sin(f.anim * gait) * (fleeing ? 6 : 4.5) : 0, bob = walking ? Math.abs(Math.sin(f.anim * gait)) * 2 : 0;
+  // stooping: bend goes 0 -> 1 -> 0; the stone shows in the hand on the way back up
+  let bend = 0, holding = f.state === 'wind';
+  if (f.state === 'wind' && f.pickT > 0) { const k = 1 - f.pickT / f.pickDur; bend = Math.sin(k * Math.PI); holding = k > 0.55; }
+  else if (f.prepT > 0 && f.state === 'idle' && !walking) { const k = (time * 1.3 + f.ph) % 1; bend = Math.sin(k * Math.PI); holding = k > 0.55; }
+  const crouch = cower ? 11 : bend > 0 ? 12 * bend : f.state === 'wind' ? 3 + f.power * 3 : 0;
+  const hip = -15 + crouch - bob, ty = hip - 19;
+  let back, front;
+  if (fleeing) { const fl = Math.sin(f.anim * 14) * 3; back = [-13, ty - 10 + fl]; front = [13, ty - 9 - fl]; }
+  else if (cower) { back = [-5, ty - 12]; front = [5, ty - 13]; }
+  else if (surr) { back = [-11, ty - 15]; front = [11, ty - 16]; }
+  else if (f.state === 'cheer') { const pump = Math.abs(Math.sin(f.anim * 7)) * 5; back = [-F * 7, ty - 16 - pump]; front = [F * 13, ty - 20 + pump * 0.6]; }
+  else if (bend > 0) { // the near arm reaches down to the ground in front, the other hand braces on the thigh
+    const rest = [F * 8.5, ty + 17];
+    front = [rest[0] + (F * 13 - rest[0]) * bend, rest[1] + (-5 - rest[1]) * bend];
+    back = [-F * 3, hip + 2];
+  }
+  else if (f.state === 'wind') { back = [-F * (12 + f.power * 4), ty - 7 - f.power * 6]; front = [F * 12, ty + 7]; }
+  else if (f.state === 'throw') { back = [F * 18, ty - 3]; front = [-F * 7, ty + 16]; }
+  else if (f.state === 'hurt') { back = [-13, ty - 9]; front = [13, ty - 8]; }
+  else { back = [-F * 8.5 - sw * 0.5, ty + 17]; front = [F * 8.5 + sw * 0.5, ty + 17]; }
+  const lean = bend > 0 ? F * 0.7 * bend : f.state === 'hurt' ? -F * 0.3 : f.state === 'throw' ? F * 0.22 : f.state === 'wind' ? -F * 0.06 : 0;
+  ctx.save(); ctx.translate(x + (cower ? Math.sin(time * 60 + f.ph * 9) * 0.8 : 0), y); ctx.rotate(lean); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  body(f, dark, { hip, sw, qs: Math.sin(f.anim * (walking ? 11 : 3)) * (walking ? 3 : 1), back, front, stone: holding && bend <= 0 && !fleeing && !cower, stoneFront: holding && bend > 0, hurt: f.state === 'hurt', scared: fleeing || cower || surr, hat: f.hat > 0 });
+  if (f.flash > 0 || (f.state === 'hurt' && f.stun > 0.4)) { // impact lines, as in old prints
+    const hy = ty - 8; ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.beginPath();
+    for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2 + 0.3; ctx.moveTo(Math.cos(a) * 12, hy + Math.sin(a) * 12); ctx.lineTo(Math.cos(a) * 19, hy + Math.sin(a) * 19); }
+    ctx.stroke();
+  }
+  ctx.restore();
+  if (fleeing || cower || surr) return;
+  pips(f, x, y);
+  if (f === sel && f.state === 'wind' && f.pickT <= 0 && ptr.down && ptr.grab) {
+    const bx = x + 18, by = y - 58, bh = 34;
+    ctx.fillStyle = PAPER; ctx.fillRect(bx, by, 6, bh); ctx.fillStyle = INK; ctx.fillRect(bx, by + bh * (1 - f.power), 6, bh * f.power);
+    ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.strokeRect(bx, by, 6, bh);
+    ctx.beginPath(); for (let k = 1; k < 4; k++) { ctx.moveTo(bx + 6, by + bh * k / 4); ctx.lineTo(bx + 9, by + bh * k / 4); } ctx.stroke();
+  }
+}
+// 氣力 pips over the head; past four they get smaller and closer, so a late crowd of six-pip foes stays readable
+function pips(f, x, y) {
+  const c = f.maxHp > 4, sp = c ? 7 : 10, a = c ? 2.7 : 3.5, b = c ? 3.1 : 4;
+  for (let i = 0; i < f.maxHp; i++) {
+    const px = x - (f.maxHp - 1) * sp / 2 + i * sp, py = y - 70;
+    ctx.beginPath(); ctx.moveTo(px, py - b); ctx.lineTo(px + a, py); ctx.lineTo(px, py + b); ctx.lineTo(px - a, py); ctx.closePath();
+    ctx.fillStyle = i < f.hp ? INK : PAPER; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = c ? 1 : 1.2; ctx.stroke();
+  }
+}
+// the one you hold, shouldering the hunting gun along the throwing line
+function drawGunman(f, dark) {
+  const x = f.x, y = f.y, F = f.face, g = gunGeom(f);
+  const rec = f.state === 'fire' ? Math.max(0, f.fireT - 0.45) * 22 : 0, at = k => g.at(k - rec);
+  hShadow(x + 3, y + 1, 13, 4);
+  if (f === sel && mode === 'play') {
+    ctx.save(); ctx.setLineDash([4, 3]); ctx.lineDashOffset = -time * 20; ctx.strokeStyle = INK; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.ellipse(x, y, 19, 8, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  }
+  const walking = f.moving, sw = walking ? Math.sin(f.anim * 11) * 4 : 0;
+  ctx.save(); ctx.translate(x, y); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  body(f, dark, { hip: g.hip, sw, qs: Math.sin(f.anim * 3), back: at(4), front: at(16), hat: f.hat > 0 });
+  const n = [-THROW.y, THROW.x], q = (k, w) => { const a = at(k); return [a[0] + n[0] * w, a[1] + n[1] * w]; };
+  const st = [q(-7, 3.6), q(10, 2.2), q(10, -2.2), q(-7, -3.4)];   // stock
+  ctx.beginPath(); st.forEach((p2, i) => i ? ctx.lineTo(p2[0], p2[1]) : ctx.moveTo(p2[0], p2[1])); ctx.closePath();
+  ctx.fillStyle = PAPER2; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.stroke();
+  const b0 = at(9), b1 = at(33), m = at(12);
+  ctx.lineWidth = 2.8; ctx.beginPath(); ctx.moveTo(b0[0], b0[1]); ctx.lineTo(b1[0], b1[1]); ctx.stroke();   // barrel
+  ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(m[0] + n[0] * 3.2, m[1] + n[1] * 3.2); ctx.lineTo(m[0] - n[0] * 0.5, m[1] - n[1] * 0.5); ctx.stroke(); // trigger guard
+  ctx.restore();
+  if (ending) return;
+  pips(f, x, y);
+}
+function drawDroppedGun(gx, gy) {
+  ctx.save(); ctx.translate(gx, gy); ctx.rotate(-0.12); ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-14, -2.4); ctx.lineTo(-3, -1.6); ctx.lineTo(-3, 1.6); ctx.lineTo(-14, 2.6); ctx.closePath();
+  ctx.fillStyle = PAPER2; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.stroke();
+  ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(18, 0); ctx.stroke();
+  ctx.restore();
+}
+// A Meiji-era police officer, drawn like everyone else: black tunic with a stand collar and a row of buttons, long trousers, boots,
+// a peaked cap with a pale band and badge, white gloves, a sabre at the hip, and often a moustache.
+function copArm(sx, sy, hx, hy) {
+  ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(hx, hy); ctx.strokeStyle = INK; ctx.lineWidth = 6.2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(hx, hy, 2.7, 0, Math.PI * 2); ctx.fillStyle = PAPER; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+}
+function drawCop(c) {
+  const x = c.x, y = c.y, F = c.face, run = !c.arrived, s = c.s || 1;
+  if (x < -40 || x > W + 40 || y < -30 || y > H + 70) return;
+  const g = c.anim * 15 + c.ph, sw = run ? Math.sin(g) * 5.5 : 0, bob = run ? Math.abs(Math.sin(g)) * 2.2 : 0;
+  const hip = -16 - bob, ty = hip - 20, hy = ty - 8.5;
+  hShadow(x + 3 * s, y + 1, 13 * s, 4 * s);
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.rotate(run ? F * 0.08 : F * ((c.lean || 0) + Math.sin(c.anim * 2.2 + c.ph) * 0.025)); // leaning in on him, swaying as they jostle
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(-3.6, hip); ctx.lineTo(-3.6 + sw, -2.6); ctx.moveTo(3.6, hip); ctx.lineTo(3.6 - sw, -2.6);  // long trousers
+  ctx.strokeStyle = INK; ctx.lineWidth = 6.4; ctx.stroke();
+  ctx.fillStyle = INK; for (const bx of [-3.6 + sw, 3.6 - sw]) { ctx.beginPath(); ctx.ellipse(bx + F * 1.8, -1, 4.4, 2.3, 0, 0, Math.PI * 2); ctx.fill(); } // boots
+  let back, front;
+  if (run) { back = [-F * 7 - sw * 0.7, ty + 15]; front = [F * 7 + sw * 0.7, ty + 14]; }
+  else if (c.pose === 'spread') { back = [-14, ty + 5]; front = [14, ty + 4]; }   // arms out, closing him in
+  else if (c.pose === 'reach') { back = [F * 12, ty + 2]; front = [F * 19, ty + 1]; } // both hands out to grab him
+  else if (c.pose === 'push') { back = [F * 13, ty + 8]; front = [F * 16, ty + 6]; }  // shoving at the one in front
+  else if (c.pose === 'raise') { back = [F * 1.8, hip - 1.6]; front = [F * 9, ty - 15]; } // a hand up: halt
+  else { back = [F * 1.8, hip - 1.6]; front = [F * 18, ty + 3]; }                // a hand on the sabre, the other pointing at him
+  copArm(-F * 6.5, ty + 3.5, back[0], back[1]);
+  const tun = q => { q.moveTo(-8.6, ty + 1.5); q.quadraticCurveTo(0, ty - 1.5, 8.6, ty + 1.5); q.lineTo(9.8, hip + 5); q.lineTo(-9.8, hip + 5); q.closePath(); };
+  ctx.beginPath(); tun(ctx); ctx.fillStyle = INK; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.9; ctx.stroke();
+  ctx.fillStyle = INK; ctx.fillRect(-4.2, ty - 2.6, 8.4, 3.6); ctx.strokeStyle = PAPER; ctx.lineWidth = 0.9; ctx.strokeRect(-4.2, ty - 2.6, 8.4, 3.6); // stand collar
+  ctx.fillStyle = PAPER; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.arc(F * 0.8, ty + 3 + k * 4.6, 1.05, 0, Math.PI * 2); ctx.fill(); }      // buttons
+  ctx.strokeStyle = PAPER; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(-9.4, hip); ctx.lineTo(9.4, hip); ctx.stroke();                          // belt
+  ctx.beginPath(); ctx.moveTo(-F * 2, hip + 1); ctx.lineTo(-F * 17, hip + 16); oStroke(3.8, PAPER, 1.6);                                               // scabbard
+  ctx.beginPath(); ctx.moveTo(-F * 2, hip + 1); ctx.lineTo(F * 4.5, hip - 4); ctx.strokeStyle = INK; ctx.lineWidth = 2.6; ctx.stroke();               // grip
+  ctx.beginPath(); ctx.moveTo(-F * 3.4, hip - 2); ctx.lineTo(-F * 0.6, hip + 3.6); ctx.strokeStyle = PAPER; ctx.lineWidth = 1.6; ctx.stroke();       // guard
+  copArm(F * 6.5, ty + 3.5, front[0], front[1]);
+  ctx.beginPath(); ctx.arc(0, hy, 6.8, 0, Math.PI * 2); ctx.fillStyle = SKIN; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.7; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-7.4, hy - 2.6); ctx.lineTo(-8.2, hy - 10.5); ctx.quadraticCurveTo(0, hy - 13.5, 8.2, hy - 10.5); ctx.lineTo(7.4, hy - 2.6); ctx.closePath();
+  ctx.fillStyle = INK; ctx.fill();                                                                                                                    // cap
+  ctx.strokeStyle = PAPER; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(-7.6, hy - 5); ctx.lineTo(7.6, hy - 5); ctx.stroke();                    // band
+  ctx.beginPath(); ctx.ellipse(F * 8.5, hy - 2.4, 5, 1.7, F * 0.12, 0, Math.PI * 2); ctx.fillStyle = INK; ctx.fill();                                // visor
+  ctx.beginPath(); ctx.arc(F * 1.5, hy - 8.4, 1.5, 0, Math.PI * 2); ctx.fillStyle = PAPER; ctx.fill();                                               // badge
+  const ex = F * 2;
+  ctx.fillStyle = INK; for (const dx of [-2.3, 2.3]) { ctx.beginPath(); ctx.arc(ex + dx, hy + 0.6, 0.95, 0, Math.PI * 2); ctx.fill(); }
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.beginPath();
+  ctx.moveTo(ex - 3.6, hy - 2.4); ctx.lineTo(ex - 1.1, hy - 1.4); ctx.moveTo(ex + 3.6, hy - 2.4); ctx.lineTo(ex + 1.1, hy - 1.4); ctx.stroke();    // stern brows
+  if (c.stache) { ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(ex, hy + 3); ctx.quadraticCurveTo(ex - 2.5, hy + 2.2, ex - 4.6, hy + 4.2); ctx.moveTo(ex, hy + 3); ctx.quadraticCurveTo(ex + 2.5, hy + 2.2, ex + 4.6, hy + 4.2); ctx.stroke(); }
+  else { ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ex - 1.4, hy + 3.8); ctx.lineTo(ex + 1.4, hy + 3.8); ctx.stroke(); }
+  ctx.restore();
+}
+function drawStone(s) {
+  const x = s.x, y = s.y - s.z;
+  ctx.beginPath();
+  const k = s.big ? 1.55 : 1;
+  for (let i = 0; i < 7; i++) { const a = s.rot + i / 7 * Math.PI * 2, r = (4.4 + Math.sin(s.seed + i * 2.3) * 1.1) * k; ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r * 0.85); }
+  ctx.closePath(); ctx.fillStyle = PAPER2; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(x + 0.5, y - 1.5); ctx.lineTo(x + 2.5, y + 1.5); ctx.moveTo(x - 1, y); ctx.lineTo(x + 1, y + 2.5); ctx.stroke();
+}
+
+// ---------- blood: sprays on a hit, stains the ground for the rest of the round ----------
+let stain = null, sctx = null;
+function makeStain() {
+  const old = stain;
+  stain = document.createElement('canvas'); stain.width = scene.width; stain.height = scene.height;
+  sctx = stain.getContext('2d');
+  if (old) sctx.drawImage(old, 0, 0, stain.width, stain.height);
+  sctx.setTransform(stain.width / W, 0, 0, stain.height / H, 0, 0);
+}
+function clearStain() { if (!sctx) return; sctx.save(); sctx.setTransform(1, 0, 0, 1, 0, 0); sctx.clearRect(0, 0, stain.width, stain.height); sctx.restore(); }
+const inRiver = (x, y) => Math.abs(S(x, y) - 1) < RIV + 0.004;
+function splat(x, y, r, vx, vy) {
+  if (!sctx || inRiver(x, y)) return;
+  const sp = Math.hypot(vx, vy), ang = Math.atan2(vy, vx), el = 1 + Math.min(1.7, sp / 150);
+  sctx.fillStyle = BLOOD;
+  blob(sctx, x, y, r, Math.random() * 10, el, ang, 0.7);
+  const k = Math.random() < 0.65 ? 1 + Math.floor(Math.random() * 3) : 0;
+  for (let i = 0; i < k; i++) {
+    const d = r * (1.5 + Math.random() * 2.4) * el, a2 = ang + rand(-0.45, 0.45);
+    sctx.beginPath(); sctx.arc(x + Math.cos(a2) * d, y + Math.sin(a2) * d * 0.75, r * rand(0.18, 0.4), 0, Math.PI * 2); sctx.fill();
+  }
+}
+function bleed(f, s) {
+  const sp = Math.hypot(s.vx, s.vy) || 1, ux = s.vx / sp, uy = s.vy / sp, base = Math.atan2(uy, ux);
+  const hz = Math.max(18, Math.min(46, s.z)), n = f.hp <= 0 ? 34 : 22;
+  for (let i = 0; i < n; i++) {
+    const a = base + gauss() * 0.55, v = rand(40, 220);
+    blood.push({ x: f.x + ux * 4, y: f.y + uy * 2, z: hz + rand(-5, 5), vx: Math.cos(a) * v, vy: Math.sin(a) * v * 0.8, vz: rand(30, 180), r: rand(0.9, 2.6) });
+  }
+  for (let i = 0; i < 6; i++) blood.push({ x: f.x + rand(-5, 5), y: f.y + rand(-2, 3), z: hz * 0.6, vx: rand(-18, 18), vy: rand(-8, 8), vz: rand(0, 40), r: rand(1.2, 2.4) });
+  splat(f.x + ux * rand(8, 18), f.y + uy * rand(5, 12), rand(3.8, 6.2), s.vx, s.vy);
+}
+function drawBlood() {
+  ctx.strokeStyle = BLOOD; ctx.fillStyle = BLOOD; ctx.lineCap = 'round';
+  for (const b of blood) {
+    const px = b.x, py = b.y - b.z, tx = px - b.vx * 0.022, ty = py - (b.vy - b.vz) * 0.022;
+    ctx.lineWidth = b.r * 1.5; ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(px, py); ctx.stroke();
+  }
+}
+// The go-on button is page UI like 說明 and 音效, so it stays crisp above the print pass. It sits bottom right,
+// or bottom left when the right corner would cover the shooter.
+function placeGoOn() {
+  const b = $('goOn'), a = $('app').getBoundingClientRect(), c = cv.getBoundingClientRect(), r = b.getBoundingClientRect();
+  if (!c.width || !r.width) return;
+  const k = W / c.width, z = cam.z, sh = ending.shooter;
+  const sx = (sh.x - cam.x) * z + W / 2, sy = (sh.y - cam.y) * z + H / 2; // his feet on screen, in world units
+  const y0 = (a.bottom - 12 - r.height - c.top) * k, y1 = (a.bottom - 12 - c.top) * k;
+  const covers = x0 => { const x1 = x0 + r.width * k; return x0 < sx + 34 * z && x1 > sx - 34 * z && y0 < sy + 10 * z && y1 > sy - 62 * z; };
+  const left = covers((a.right - 12 - r.width - c.left) * k) && !covers((a.left + 12 - c.left) * k);
+  if (left !== b.classList.contains('left')) b.classList.toggle('left', left);
+}
+
+function draw() {
+  const kx = scene.width / W, ky = scene.height / H, sk = shake * 10;
+  const ox = sk ? (Math.random() - 0.5) * sk * kx : 0, oy = sk ? (Math.random() - 0.5) * sk * ky : 0;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (!bg || bg.width !== scene.width || bg.height !== scene.height) buildBg();
+  if (sk) { ctx.fillStyle = PAPER; ctx.fillRect(0, 0, scene.width, scene.height); }
+  const z = cam.z, bx = (W / 2 - cam.x * z) * kx + ox, by = (H / 2 - cam.y * z) * ky + oy;
+  if (z > 1.001) { ctx.fillStyle = PAPER; ctx.fillRect(0, 0, scene.width, scene.height); }
+  ctx.setTransform(z, 0, 0, z, bx, by);
+  ctx.drawImage(bg, 0, 0);
+  ctx.setTransform(kx * z, 0, 0, ky * z, bx, by);
+  drawRiver();
+  if (stain) { ctx.save(); ctx.setTransform(z, 0, 0, z, bx, by); ctx.drawImage(stain, 0, 0); ctx.restore(); }
+  ctx.strokeStyle = INK; ctx.lineWidth = 1;
+  for (const p of pebbles) { ctx.globalAlpha = Math.min(1, (6 - p.t) / 1.5); ctx.beginPath(); ctx.ellipse(p.x, p.y, 3, 2, 0, 0, Math.PI * 2); ctx.fillStyle = PAPER2; ctx.fill(); ctx.stroke(); } ctx.globalAlpha = 1;
+  for (const s of stones) { const k = Math.max(0.35, 1 - s.z / 260); ell(s.x, s.y, 4.5 * k, 2 * k, 'rgba(27,24,20,' + (0.45 * k) + ')'); }
+  const list = [];
+  for (const t of tombs) list.push({ y: t.y + 3, d: () => drawTomb(t) });
+  for (const c of CROWD) list.push({ y: c.y, d: () => drawOnlooker(c) });
+  for (const f of fighters) list.push({ y: f.y, d: () => drawFighter(f) });
+  for (const c of cops) list.push({ y: c.y, d: () => drawCop(c) });
+  list.push({ y: 170, d: () => drawFlag(26, 170, foeSide) });
+  list.push({ y: H - 14, d: () => drawFlag(W - 74, H - 14, mySide) });
+  list.sort((a, b) => a.y - b.y).forEach(o => o.d());
+  if (sel && sel.state === 'wind' && sel.pickT <= 0 && ptr.down && ptr.grab && mode === 'play') {
+    // only the first half of the flight is shown: from the hand up to the top of the arc
+    const dist = playerReach(sel), { T, vz } = arcFor(dist), vx = THROW.x * dist / T, vy = THROW.y * dist / T;
+    const tTop = Math.max(0.06, vz / G), tEnd = up.eye >= 1 ? T : tTop, n = up.eye ? 40 : 24;
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) { const t = tEnd * i / n, z = Z0 + vz * t - 0.5 * G * t * t; i ? ctx.lineTo(sel.x + vx * t, sel.y + vy * t - z) : ctx.moveTo(sel.x + vx * t, sel.y + vy * t - z); }
+    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = PAPER; ctx.lineWidth = 6; ctx.setLineDash([8, 4]); ctx.stroke();
+    ctx.strokeStyle = INK; ctx.lineWidth = 2.6; ctx.setLineDash([7, 5]); ctx.stroke();
+    if (up.eye >= 1) { const lx = sel.x + vx * T, ly = sel.y + vy * T; ctx.setLineDash([]); ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(lx, ly, 13, 5.5, 0, 0, Math.PI * 2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(lx - 5, ly); ctx.lineTo(lx + 5, ly); ctx.moveTo(lx, ly - 2.5); ctx.lineTo(lx, ly + 2.5); ctx.stroke(); }
+    ctx.restore();
+  }
+  if (sel && sel.state === 'aim' && sel.aimT <= 0 && ptr.down && ptr.grab && mode === 'play') { // a straight sight line
+    const m = muzzle(sel), L = 240;
+    const gr = ctx.createLinearGradient(m.x, m.y, m.x + THROW.x * L, m.y + THROW.y * L);
+    gr.addColorStop(0, 'rgba(27,24,20,1)'); gr.addColorStop(1, 'rgba(27,24,20,0)');
+    ctx.save(); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x + THROW.x * L, m.y + THROW.y * L);
+    ctx.strokeStyle = 'rgba(235,228,209,.9)'; ctx.lineWidth = 5; ctx.setLineDash([3, 6]); ctx.stroke();
+    ctx.strokeStyle = gr; ctx.lineWidth = 2; ctx.setLineDash([2, 7]); ctx.stroke(); ctx.restore();
+  }
+  for (const s of stones) drawStone(s);
+  if (tracer) {
+    ctx.save(); ctx.globalAlpha = 1 - tracer.t / 0.5; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(tracer.x0, tracer.y0); ctx.lineTo(tracer.x1, tracer.y1);
+    ctx.strokeStyle = PAPER; ctx.lineWidth = 5; ctx.stroke(); ctx.strokeStyle = INK; ctx.lineWidth = 2.4; ctx.stroke(); ctx.restore();
+  }
+  for (const fl of flashes) { // muzzle flash: a jagged white star outlined in ink
+    ctx.beginPath(); for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2, r = i % 2 ? 5 : 15 + Math.random() * 6; ctx.lineTo(fl.x + Math.cos(a) * r, fl.y + Math.sin(a) * r); }
+    ctx.closePath(); ctx.fillStyle = PAPER; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.8; ctx.stroke();
+  }
+  drawBlood();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const sh of shouts) {
+    const a = Math.min(1, sh.t / 0.12, (1.4 - sh.t) / 0.35), k = 0.7 + 0.3 * Math.min(1, sh.t / 0.15);
+    ctx.save(); ctx.globalAlpha = Math.max(0, a); ctx.translate(sh.x, sh.y - sh.t * 16); ctx.rotate(sh.rot); ctx.scale(k, k);
+    ctx.font = '900 ' + (sh.big ? 22 : 15) + 'px "Noto Serif TC", "Songti TC", serif';
+    ctx.lineJoin = 'round'; ctx.lineWidth = sh.big ? 5 : 4; ctx.strokeStyle = PAPER; ctx.strokeText(sh.txt, 0, 0);
+    ctx.fillStyle = INK; ctx.fillText(sh.txt, 0, 0);
+    ctx.restore();
+  }
+  for (const p of parts) {
+    const a = Math.max(0, p.life / p.max);
+    ctx.strokeStyle = INK;
+    if (p.hatfly) { ctx.globalAlpha = 1; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); strawHat(0, 0, 1.05); ctx.restore(); continue; }
+    if (p.ring) { ctx.globalAlpha = a; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r, p.r * 0.45, 0, 0, Math.PI * 2); ctx.stroke(); }
+    else if (p.puff) { ctx.globalAlpha = a * 0.7; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r, p.r * 0.5, 0, 0, Math.PI * 2); ctx.stroke(); }
+    else { ctx.globalAlpha = a; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 0.03, p.y - p.vy * 0.03); ctx.stroke(); }
+  }
+  ctx.globalAlpha = 1;
+  ctx.setTransform(kx, 0, 0, ky, 0, 0); // overlays below are in screen space, outside the camera
+  if (cam.k > 0) { const lb = cam.k * H * 0.1; ctx.fillStyle = INK; ctx.fillRect(-10, -10, W + 20, lb + 10); ctx.fillRect(-10, H - lb, W + 20, lb + 10); }
+  if (ending && ending.rt > 5.3) { // the headline above the ringed shooter, the stamp below him, like a front page
+    const k = Math.min(1, (ending.rt - 5.3) / 0.3), big = Math.min(84, W / 6);
+    const shy = (ending.shooter.y - 28 - cam.y) * cam.z + H / 2, hy = Math.max(big * 0.72, H * 0.16);
+    const stampY = shy < H * 0.6 ? H - Math.max(big * 0.75, H * 0.14) : hy + big * 1.15;
+    ctx.save(); ctx.globalAlpha = 0.28 * k; ctx.fillStyle = PAPER; ctx.fillRect(-20, -20, W + 40, H + 40); ctx.restore();
+    ctx.save(); ctx.translate(W / 2, hy); ctx.scale(1 + (1 - k) * 0.4, 1 + (1 - k) * 0.4); ctx.globalAlpha = k;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = '900 ' + big + 'px "Noto Serif TC", "Songti TC", serif';
+    ctx.lineJoin = 'round'; ctx.lineWidth = big * 0.18; ctx.strokeStyle = PAPER; ctx.strokeText('出人命了', 0, 0);
+    ctx.fillStyle = INK; ctx.fillText('出人命了', 0, 0); ctx.restore();
+    if (ending.rt > 6.2) {
+      const s2 = Math.min(1, (ending.rt - 6.2) / 0.12), fs = big * 0.6;
+      ctx.save(); ctx.translate(W / 2, stampY); ctx.rotate(-0.06); ctx.scale(1 + (1 - s2) * 0.9, 1 + (1 - s2) * 0.9); ctx.globalAlpha = s2;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = '900 ' + fs + 'px "Noto Serif TC", "Songti TC", serif';
+      const tw = ctx.measureText('惡俗取締').width, bw = tw + fs * 0.9, bh = fs * 1.55;
+      ctx.fillStyle = PAPER; ctx.fillRect(-bw / 2, -bh / 2, bw, bh);
+      ctx.strokeStyle = INK; ctx.lineWidth = 4; ctx.strokeRect(-bw / 2, -bh / 2, bw, bh); ctx.lineWidth = 1.6; ctx.strokeRect(-bw / 2 + 6, -bh / 2 + 6, bw - 12, bh - 12);
+      ctx.fillStyle = INK; ctx.fillText('惡俗取締', 0, 2); ctx.restore();
+    }
+  }
+  if (ending && ending.ready && !ending.shown) placeGoOn();
+  if (banner) {
+    const b = banner, a = Math.min(1, b.t / 0.25, (b.dur - b.t) / 0.4);
+    ctx.globalAlpha = Math.max(0, a); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = INK; ctx.fillRect(0, H / 2 - 50, W, 100);
+    ctx.strokeStyle = PAPER; ctx.lineWidth = 1.2; ctx.strokeRect(-2, H / 2 - 44, W + 4, 88);
+    ctx.fillStyle = PAPER; ctx.font = '900 46px "Noto Serif TC", "Songti TC", serif'; ctx.fillText(b.text, W / 2, H / 2 - 10);
+    ctx.font = '700 17px "Noto Serif TC", "Songti TC", serif'; ctx.fillText(b.sub, W / 2, H / 2 + 28);
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ---------- print pass: the frame is redrawn as if printed and scanned from an old page ----------
+// Ink spreads into the paper, mid-tones break up into grain, solid black wears through in spots,
+// the paper is blotched and specked, lines tremble slightly. Red (blood) is kept as a second ink.
+const printer = (() => {
+  const VS = 'attribute vec2 a;varying vec2 v;void main(){v=vec2(a.x*.5+.5,.5-a.y*.5);gl_Position=vec4(a,0.,1.);}';
+  const FS = `#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform sampler2D t; uniform vec2 res; uniform float k; varying vec2 v;
+float h(vec2 p){ vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
+float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(h(i), h(i + vec2(1.0, 0.0)), f.x), mix(h(i + vec2(0.0, 1.0)), h(i + vec2(1.0, 1.0)), f.x), f.y); }
+float rd(vec3 c){ return smoothstep(0.10, 0.40, c.r - max(c.g, c.b)); }
+float ik(vec3 c){ return clamp((0.9 - dot(c, vec3(0.3, 0.59, 0.11))) / 0.8, 0.0, 1.0) * (1.0 - rd(c)); }
+void main(){
+  vec2 w = v * res / k;
+  vec2 d = vec2(n(w * 0.12), n(w * 0.12 + 19.7)) - 0.5;
+  vec2 uv = v + d * 1.3 * k / res;
+  vec2 o = 0.8 * k / res;
+  vec3 c0 = texture2D(t, uv).rgb;
+  vec3 c1 = texture2D(t, uv + vec2(o.x, 0.0)).rgb;
+  vec3 c2 = texture2D(t, uv - vec2(o.x, 0.0)).rgb;
+  vec3 c3 = texture2D(t, uv + vec2(0.0, o.y)).rgb;
+  vec3 c4 = texture2D(t, uv - vec2(0.0, o.y)).rgb;
+  float i0 = ik(c0), i1 = ik(c1), i2 = ik(c2), i3 = ik(c3), i4 = ik(c4);
+  float a = max(mix(i0, (i1 + i2 + i3 + i4) * 0.25, 0.4), max(max(i1, i2), max(i3, i4)) * 0.45);
+  float r = max(rd(c0), (rd(c1) + rd(c2) + rd(c3) + rd(c4)) * 0.22);
+  float g1 = h(floor(w * 1.25));
+  float g2 = n(w * 0.6);
+  float m = 0.55 * n(w * 0.012) + 0.3 * n(w * 0.029 + 4.1) + 0.15 * n(w * 0.07 + 8.3);
+  float gr = 0.55 * g1 + 0.45 * g2;
+  float th = 0.45 + (gr - 0.5) * 0.42 + (m - 0.5) * 0.3;
+  float cov = smoothstep(th - 0.1, th + 0.1, a);
+  cov *= 1.0 - 0.7 * step(0.955, h(floor(w * 0.8) + 41.0)) * smoothstep(0.5, 0.75, n(w * 0.045 + 7.0));
+  float rc = smoothstep(0.2, 0.55, r + (gr - 0.5) * 0.35);
+  vec3 paper = mix(vec3(0.918, 0.904, 0.870), vec3(0.835, 0.818, 0.780), smoothstep(0.35, 0.8, m));
+  paper -= (h(floor(w * 2.4) + 3.0) - 0.5) * 0.09;
+  paper -= smoothstep(0.62, 0.9, n(vec2(w.x * 0.02, w.y * 0.35) + 2.0)) * 0.05;
+  paper -= step(0.9965, h(floor(w * 0.95) + 11.0)) * 0.45;
+  vec3 inkc = vec3(0.105, 0.097, 0.088) + (g1 - 0.5) * 0.07 + m * 0.06;
+  vec3 redc = vec3(0.71, 0.075, 0.06) * (0.82 + 0.32 * g2);
+  vec3 col = mix(paper, redc, rc);
+  col = mix(col, inkc, cov);
+  vec2 q = v - 0.5;
+  col *= 1.0 - dot(q, q) * 0.32;
+  gl_FragColor = vec4(col, 1.0);
+}`;
+  // The visible canvas stays 2D. The print pass renders on an offscreen WebGL canvas and is copied in;
+  // if frames stay slow (no GPU, a weak device), it switches itself off and the grain sheet below takes over.
+  const c2d = cv.getContext('2d');
+  let glc = null, gl = null, prog = null, tex = null, uRes = null, uK = null, tw = 0, th = 0, grain = null, on = false, slowMs = 0, lastT = 0;
+  function build(g) {
+    const sh = (type, src) => { const x = g.createShader(type); g.shaderSource(x, src); g.compileShader(x); if (!g.getShaderParameter(x, g.COMPILE_STATUS)) throw new Error(g.getShaderInfoLog(x) || 'shader'); return x; };
+    const p = g.createProgram(); g.attachShader(p, sh(g.VERTEX_SHADER, VS)); g.attachShader(p, sh(g.FRAGMENT_SHADER, FS)); g.linkProgram(p);
+    if (!g.getProgramParameter(p, g.LINK_STATUS)) throw new Error(g.getProgramInfoLog(p) || 'link');
+    return p;
+  }
+  function setup() {
+    prog = build(gl); gl.useProgram(prog);
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, 'a'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.uniform1i(gl.getUniformLocation(prog, 't'), 0);
+    uRes = gl.getUniformLocation(prog, 'res'); uK = gl.getUniformLocation(prog, 'k'); tw = th = 0;
+  }
+  try {
+    glc = document.createElement('canvas');
+    gl = glc.getContext('webgl', { alpha: false, antialias: false, depth: false, stencil: false, premultipliedAlpha: false, preserveDrawingBuffer: true });
+    if (gl) { setup(); on = true; }
+  } catch (_) { gl = null; prog = null; on = false; }
+  if (gl) {
+    glc.addEventListener('webglcontextlost', e => { e.preventDefault(); prog = null; });
+    glc.addEventListener('webglcontextrestored', () => { try { setup(); } catch (_) { prog = null; } });
+  }
+  // without the print pass: lay a pre-made sheet of paper grain and blotches over the frame
+  function makeGrain(w, h) {
+    const g = document.createElement('canvas'); g.width = w; g.height = h;
+    const c = g.getContext('2d'), R = mulberry(77);
+    const lo = document.createElement('canvas'); lo.width = 48; lo.height = 30;
+    const lc = lo.getContext('2d'), li = lc.createImageData(48, 30);
+    for (let i = 0; i < li.data.length; i += 4) { const v = 215 + R() * 40; li.data[i] = v; li.data[i + 1] = v * 0.985; li.data[i + 2] = v * 0.95; li.data[i + 3] = 255; }
+    lc.putImageData(li, 0, 0);
+    c.imageSmoothingEnabled = true; c.drawImage(lo, 0, 0, w, h);
+    const img = c.getImageData(0, 0, w, h), d = img.data;
+    for (let i = 0; i < d.length; i += 4) { const nn = (R() - 0.5) * 34 - (R() > 0.997 ? 110 : 0); d[i] += nn; d[i + 1] += nn; d[i + 2] += nn; }
+    c.putImageData(img, 0, 0);
+    return g;
+  }
+  return {
+    get webgl() { return on; },
+    present(now) {
+      if (on && lastT) { // watchdog: about 3 s of frames slower than ~22 fps turns the print pass off
+        const dt = now - lastT;
+        slowMs = dt > 45 ? slowMs + Math.min(dt, 1000) : Math.max(0, slowMs - dt * 2);
+        if (slowMs > 3000) on = false;
+      }
+      lastT = now;
+      if (on && prog && !gl.isContextLost()) {
+        if (glc.width !== scene.width || glc.height !== scene.height) { glc.width = scene.width; glc.height = scene.height; }
+        gl.viewport(0, 0, glc.width, glc.height);
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        if (tw !== scene.width || th !== scene.height) { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, scene); tw = scene.width; th = scene.height; }
+        else gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, scene);
+        gl.uniform2f(uRes, glc.width, glc.height); gl.uniform1f(uK, glc.width / W);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        c2d.drawImage(glc, 0, 0, cv.width, cv.height);
+      } else {
+        if (!grain || grain.width !== cv.width || grain.height !== cv.height) grain = makeGrain(cv.width, cv.height);
+        c2d.globalCompositeOperation = 'source-over'; c2d.drawImage(scene, 0, 0);
+        c2d.globalCompositeOperation = 'multiply'; c2d.drawImage(grain, 0, 0);
+        c2d.globalCompositeOperation = 'source-over';
+      }
+    }
+  };
+})();
+
+// ---------- loop ----------
+// Positions scale with the field; the zone a point is in (x/W + y/H) stays the same.
+function setWorld(nW, nH) {
+  if (nW === W && nH === H) return false;
+  const fx = nW / W, fy = nH / H, sc = o => { o.x *= fx; o.y *= fy; };
+  for (const f of fighters) { sc(f); f.tx *= fx; f.ty *= fy; }
+  for (const o of tombs) sc(o);
+  for (const o of stones) { sc(o); o.vx *= fx; o.vy *= fy; }
+  for (const o of blood) { sc(o); o.vx *= fx; o.vy *= fy; }
+  for (const o of pools) sc(o);
+  for (const o of pebbles) sc(o);
+  for (const o of parts) sc(o);
+  for (const o of cops) { sc(o); o.tx *= fx; o.ty *= fy; }
+  if (ending) { for (const c of CROWD) sc(c); if (ending.cam) { ending.cam.x *= fx; ending.cam.y *= fy; } }
+  if (finale) sc(finale);
+  W = nW; H = nH; NRM = calcNrm(); if (!ending) CROWD = buildCrowd(); bg = null;
+  return true;
+}
+function resize() {
+  const app = $('app'), vw = Math.max(1, app.clientWidth), vh = Math.max(1, app.clientHeight);
+  const ar = Math.max(0.45, Math.min(2.4, vw / vh));
+  const changed = setWorld(Math.round(Math.sqrt(AREA * ar)), Math.round(Math.sqrt(AREA / ar)));
+  let cw = vw, ch = vw * H / W; if (ch > vh) { ch = vh; cw = vh * W / H; }
+  cv.style.width = cw + 'px'; cv.style.height = ch + 'px';
+  const k = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(2.4e6 / (cw * ch)));
+  const w = Math.max(320, Math.round(cw * k)), h = Math.round(w * H / W);
+  if (changed || scene.width !== w || scene.height !== h || !stain) { scene.width = w; scene.height = h; bg = null; makeStain(); }
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+}
+let resizeQueued = false;
+window.addEventListener('resize', () => { if (!resizeQueued) { resizeQueued = true; requestAnimationFrame(() => { resizeQueued = false; resize(); }); } });
+let last = performance.now();
+// ---------- camera: still for the whole game, except for the gunshot close-up ----------
+const cam = { x: 0, y: 0, z: 1, k: 0 };
+function camK(rt) { // 0 = whole field, 1 = close-up
+  if (rt < 0.28) return 1 - Math.pow(1 - rt / 0.28, 3);
+  if (rt < 2.3) return 1;
+  if (rt < 3.1) { const u = (rt - 2.3) / 0.8; return 1 - u * u * (3 - 2 * u); }
+  return 0;
+}
+function timeScale(rt) { return rt < 0.12 ? 1 : rt < 2.3 ? 0.28 : rt < 3.1 ? 0.28 + 0.72 * (rt - 2.3) / 0.8 : 1; }
+function updateCam() {
+  let k = 0, z = 1, x = W / 2, y = H / 2;
+  if (finale && !ending) { // close in on the one who threw it, then a slow push while we hold on him
+    const q = Math.min(1, finale.rt / FIN_IN), k2 = q * q * (3 - 2 * q), w = finale.who || finale;
+    const push = 1 + 0.06 * Math.min(1, Math.max(0, finale.rt - FIN_IN) / (FIN_LEN - FIN_IN));
+    k = k2; z = 1 + (FIN_Z * push - 1) * k2; x = W / 2 + (w.x - W / 2) * k2; y = H / 2 + (w.y - 30 - H / 2) * k2;
+    const hw = W / (2 * z), hh = H / (2 * z);
+    x = Math.min(W - hw, Math.max(hw, x)); y = Math.min(H - hh, Math.max(hh, y));
+  }
+  else if (ending && ending.cam) {
+    const c = ending.cam, push = ending.rt > 0.28 && ending.rt < 2.3 ? 1 + 0.06 * (ending.rt - 0.28) / 2.02 : 1;
+    k = camK(ending.rt); z = 1 + (c.z * push - 1) * k; x = W / 2 + (c.x - W / 2) * k; y = H / 2 + (c.y - H / 2) * k;
+    if (ending.rt > 3.1) {
+      const q = Math.min(1, Math.max(0, (ending.rt - 3.6) / 1.3)), k2 = q * q * (3 - 2 * q), sh = ending.shooter;
+      z = 1 + 0.4 * k2; x = W / 2 + (sh.x - W / 2) * k2; y = H / 2 + (sh.y - 28 - H / 2) * k2;
+    }
+    const hw = W / (2 * z), hh = H / (2 * z);
+    x = Math.min(W - hw, Math.max(hw, x)); y = Math.min(H - hh, Math.max(hh, y));
+  }
+  cam.x = x; cam.y = y; cam.z = z; cam.k = k;
+}
+function frame(now) {
+  const rdt = Math.min(0.05, (now - last) / 1000); last = now;
+  let dt = rdt;
+  if (ending && !paused) { ending.rt += rdt; dt = rdt * timeScale(ending.rt); }
+  else if (finale && !finale.done && !paused) { finale.rt += rdt; dt = rdt * (finale.rt < FIN_IN ? 0.35 : 1); } // the deciding fall in slow motion
+  if (shake > 0) shake = Math.max(0, shake - rdt);
+  if (!paused) { if (stopT > 0) stopT -= dt; else update(dt); }
+  updateCam();
+  draw(); printer.present(now); renderHud();
+  requestAnimationFrame(frame);
+}
+// title scene: both camps standing ready
+(function demo() {
+  mySide = 'shi'; foeSide = 'hx';
+  players = PSTART.slice(0, 5).map(([c, u]) => { const p = edge(c, u); return mkFighter('P', 'shi', p.x, p.y, 3); });
+  enemies = [0, 1, 2, 3].map(i => { const p = clampZone('E', edge(i % 2 ? 0.62 : 0.42, 0.15 + i * 0.22)); return mkFighter('E', 'hx', p.x, p.y, 2); });
+  fighters = players.concat(enemies); makeTombs(); sel = null;
+  for (const f of fighters) f.prepT = 1e9; // the title scene: everyone gathering stones
+})();
+resize();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { bg = null; });
+requestAnimationFrame(frame);
+window.__lukang = { dbg: { update, playerThrow, select, startRound, choose, healTeam, chargeTime, pickTime, clampZone, pushOut, goOn, battleHeat, renderCards, award, hit, skipRelease, get finale() { return finale; }, get clipsGot() { return clipsGot; }, get runs() { return runs; }, get trk() { return trk; }, get rs() { return rs; }, behindTomb, get tombs() { return tombs; }, get music() { return music; }, setLevel(v) { level = v; }, get hits() { return hits; }, get cops() { return cops; }, foeAt, foeNews, paceOf, get foe() { return foe; }, get dl() { return dl; }, get stepped() { return stepped; }, set noGuard(v) { noGuard = v; },
+    get ptr() { return ptr; }, get sel() { return sel; }, set paused(v) { paused = v; }, get retries() { return retries; }, set retries(v) { retries = v; },
+    THROW, PLAYER_MIN, PLAYER_RANGE }, roll(lv) { const o = level; level = lv; const r = rollChoices(); level = o; return r; }, get combo() { return combo; }, get up() { return up; }, get choices() { return choices; }, get ending() { return ending; }, get crowd() { return CROWD; }, get fighters() { return fighters; }, get W() { return W; }, get H() { return H; }, get webgl() { return printer.webgl; }, get blood() { return blood; }, get mode() { return mode; }, get players() { return players; }, get enemies() { return enemies; }, get stones() { return stones; }, get score() { return score; }, get level() { return level; } };
+})();
+</script>
+</body>
+</html>
