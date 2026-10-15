@@ -38,9 +38,9 @@ body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--f-body)
 .hud{position:absolute;top:8px;left:8px;right:8px;z-index:2;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none}
 .hud > *{pointer-events:auto}
 /* The HUD is set like the page it sits on: the score is a ruled newspaper box, the buttons are slugs of type.
-   Thick-thin rules, Ming type, a little paper grain, and an SVG filter (#press) that roughens the edges like ink on newsprint. */
+   Thick-thin rules, Ming type, a little paper grain; no roughening filter here, so the small type stays sharp. */
 .tag,.icon{--pp:#ebe4d1;color:var(--sheet-ink);background:var(--grain),var(--pp);border:2px solid var(--sheet-ink);
-  box-shadow:inset 0 0 0 2px var(--pp),inset 0 0 0 3px var(--sheet-ink);font-family:var(--f-display);font-weight:900;line-height:1;filter:url(#press)}
+  box-shadow:inset 0 0 0 2px var(--pp),inset 0 0 0 3px var(--sheet-ink);font-family:var(--f-display);font-weight:900;line-height:1}
 .tag{position:absolute;left:8px;bottom:8px;z-index:2;display:flex;align-items:stretch;padding:3px;pointer-events:none;font-variant-numeric:tabular-nums}
 .tag span{display:flex;align-items:baseline;gap:4px;padding:5px 8px 4px;font-size:11px;font-weight:700;letter-spacing:.08em;white-space:nowrap}
 .tag span + span{border-left:1px solid var(--sheet-ink)}
@@ -64,7 +64,7 @@ button:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
   color:var(--sheet-ink);background:var(--grain),#ebe4d1;border-top:4px solid var(--sheet-ink);border-bottom:4px solid var(--sheet-ink);
   box-shadow:inset 0 2px 0 #ebe4d1,inset 0 3px 0 var(--sheet-ink),inset 0 -2px 0 #ebe4d1,inset 0 -3px 0 var(--sheet-ink),0 6px 18px rgba(0,0,0,.35);
   font-family:var(--f-display);filter:url(#press);pointer-events:none;opacity:0;transform:translate(-50%,-14px)}
-.clip.low{top:auto;bottom:84px} /* over the closing sheet it keeps clear of the 出人命了 stamp */
+.clip.low{top:auto;bottom:84px} /* over the closing sheet it keeps clear of the headline */
 .clip.in{animation:clip-in .38s cubic-bezier(.2,.9,.3,1.2) forwards}
 .clip.out{animation:clip-out .4s ease-in forwards}
 .clip .ext{flex:none;font-weight:900;font-size:13px;letter-spacing:.1em;padding-right:11px;margin-right:11px;border-right:1px solid var(--sheet-ink);white-space:nowrap}
@@ -121,7 +121,7 @@ button:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
 .card .pip{width:7px;height:7px;border:1px solid currentColor;transform:rotate(45deg)}
 .card .pip.on{background:currentColor}
 .card .ds{font-size:13px;line-height:1.55;text-wrap:pretty}
-.card .nt{font-family:var(--f-display);font-size:13px;margin-top:2px}
+.card .nt{font-family:var(--f-display);font-weight:700;font-size:13px;margin-top:2px}
 .en{font-family:var(--f-latin);font-style:normal;letter-spacing:0}
 .card.gun{background:var(--sheet-ink);color:var(--sheet);border-color:var(--sheet);box-shadow:0 0 0 3px var(--sheet-ink),0 0 0 4px var(--sheet)}
 .card.gun .key,.card.gun .lv{color:var(--paper-dim)}
@@ -131,14 +131,49 @@ button:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
   .card .key{grid-row:1/3} .card .ds,.card .nt{grid-column:2} .card .nm{font-size:22px} }
 @media (max-height:500px){ .cards{gap:10px} .card{padding:8px 10px;gap:3px} .card .ds{font-size:12px} .ov-inner.wide .fact,.ov-inner.wide .lead{display:none} }
 
-/* the closing sheet */
-.sheet.end .stamp{display:table;margin:2px auto 14px;font-family:var(--f-display);font-weight:900;font-size:clamp(24px,5.5vmin,38px);letter-spacing:.12em;
-  border:4px double var(--sheet-ink);padding:4px 14px} /* set straight, as a headline box in the paper would be */
-.ov .sheet.end p.stamp{color:var(--sheet-ink)}
-.ov .sheet.end .end-stats{font-family:var(--f-display);font-weight:700;text-align:center;max-width:none}
-.ov .sheet.end .end-build{text-align:center;font-size:13px;color:var(--sheet-dim);max-width:none}
 .ov p.rankline{color:var(--paper);font-family:var(--f-display);font-weight:700;letter-spacing:.06em}
 .sheet-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px 14px 14px;border-top:1px solid var(--sheet-rule)}
+/* The closing sheet is set like an extra of the colonial-era papers (臺灣日日新報): no boxes, only rules and type.
+   A running head over a thin rule; a kicker in gothic over a frameless headline in heavy letterpress Ming
+   (Shippori Mincho B1, fetched when a sheet first opens, only the characters it sets), its edges roughened by #lead;
+   the run's figures in a ruled table under a 子持罫 (thick rule over thin); notes run in under ▲; a dotted rule
+   before the article. A new record is printed in the one colour the paper has, blood, with 傍點 over it. */
+:root{--blood:#c41a12;--f-lead:"Shippori Mincho B1","Noto Serif TC","Songti TC","PMingLiU","MingLiU",serif}
+.sheet.end{background:var(--grain),var(--sheet)}
+.sheet.end .sheet-head{justify-content:space-between;margin:0 16px;padding:11px 0 7px;border-bottom:1px solid var(--sheet-ink)}
+.sheet.end .sheet-head > *{margin:0;font-family:var(--f-display);font-weight:700;font-size:12px;line-height:1;letter-spacing:.4em;color:var(--sheet-ink)}
+.sheet.end .pane{padding-top:16px}
+.ov .sheet.end .pane p{font-family:var(--f-display);font-weight:400}
+.hl{text-align:center}
+.ov .sheet.end .hl p{max-width:none;margin:0}
+.ov .sheet.end .hl .kick{font-family:var(--f-body);font-weight:700;font-size:clamp(14px,3vmin,18px);line-height:1.3;letter-spacing:.5em;padding-left:.5em}
+.sheet.end .pane h3.big{margin:4px 0 12px;font-family:var(--f-lead);font-weight:800;font-size:clamp(56px,min(24vw,17vh),128px);line-height:1;letter-spacing:.1em;padding-left:.1em;filter:url(#lead)}
+.sheet.end .pane h3.big.long{font-size:clamp(44px,min(16.5vw,13.5vh),104px);letter-spacing:.02em;padding-left:.02em}
+.ov .sheet.end .hl .deck{font-family:var(--f-lead);font-weight:800;font-size:clamp(16px,3.4vmin,21px);line-height:1.4;letter-spacing:.3em;padding-left:.3em;filter:url(#press)}
+.tally{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:18px 0 0;padding-top:6px;border-bottom:1px solid var(--sheet-ink)}
+.tally::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;box-sizing:border-box;border-top:3px solid var(--sheet-ink);border-bottom:1px solid var(--sheet-ink)}
+.tally div{display:flex;flex-direction:column;text-align:center;min-width:0}
+.tally div + div{border-left:1px solid var(--sheet-ink)}
+.tally small{padding:6px 0 5px;border-bottom:1px solid var(--sheet-ink);font-family:var(--f-body);font-weight:700;font-size:12px;line-height:1.2;letter-spacing:.32em;text-indent:.32em}
+.tally b{padding:12px 2px 11px;font-family:var(--f-lead);font-weight:800;font-size:clamp(30px,6.6vmin,46px);line-height:1;white-space:nowrap;font-variant-numeric:tabular-nums;filter:url(#press)}
+.tally b i{font-style:normal;font-size:.4em;margin-left:.12em}
+.tally b .kj{font-size:.8em}
+.tally .new b{color:var(--blood);padding-bottom:2px}
+.tally .rec{margin:0 0 7px;font-style:normal;font-family:var(--f-lead);font-weight:800;font-size:13px;line-height:2;letter-spacing:.24em;text-indent:.24em;color:var(--blood);
+  -webkit-text-emphasis:filled dot;text-emphasis:filled dot;-webkit-text-emphasis-position:over right;text-emphasis-position:over right}
+@media (max-width:440px){ .tally{grid-template-columns:repeat(2,minmax(0,1fr))} .tally div:nth-child(3){border-left:0} .tally div:nth-child(n+3){border-top:1px solid var(--sheet-ink)} }
+.end-notes{margin:12px 0 0}
+.ov .sheet.end .end-notes p{margin:0 0 1px;max-width:none;font-size:14px;line-height:1.75;padding-left:1.2em;text-indent:-1.2em}
+.end-notes p::before{content:"▲";display:inline-block;width:1.2em;text-indent:0;font-size:.8em;vertical-align:.06em}
+.end-more{margin-top:16px;padding-top:14px;background:radial-gradient(circle,var(--sheet-ink) 0 1px,transparent 1.3px) repeat-x 0 0/5px 3px}
+.sheet.end .pane .end-more h3{font-family:var(--f-body);font-weight:700;font-size:15px;letter-spacing:.14em;margin:10px 0 3px}
+.sheet.end .pane .end-more h3:first-child{margin-top:0}
+@media (max-height:460px){ .sheet.end .sheet-head{padding-top:8px} .sheet.end .pane{padding-top:8px} .sheet.end .pane h3.big{margin-bottom:6px} .tally{margin-top:10px}
+  .tally b{padding:8px 2px 7px} .sheet-foot{padding:7px 12px 9px} .sheet-foot .btn{padding:7px 12px 6px 14px} }
+.sheet-foot .btn{color:var(--sheet-ink);background:var(--grain),var(--sheet);border:2px solid var(--sheet-ink);box-shadow:inset 0 0 0 2px var(--sheet),inset 0 0 0 3px var(--sheet-ink);
+  font-weight:900;font-size:15px;letter-spacing:.14em;padding:10px 14px 9px 16px;filter:url(#press)}
+.sheet-foot .btn.main{color:var(--sheet);background:var(--sheet-ink);box-shadow:inset 0 0 0 2px var(--sheet-ink),inset 0 0 0 3px var(--sheet)}
+.sheet-foot .btn:hover,.sheet-foot .btn:focus-visible{filter:url(#press) brightness(1.06)}
 
 /* help sheet: a page from an old journal */
 .ov.help{align-items:start}
@@ -194,6 +229,10 @@ button:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <filter id="press" x="-4%" y="-12%" width="108%" height="124%"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="7" result="n"/>
       <feDisplacementMap in="SourceGraphic" in2="n" scale="1.3" xChannelSelector="R" yChannelSelector="G"/></filter>
+    <!-- big letterpress type: only the edges wander a little; the face itself already has the ink spread -->
+    <filter id="lead" x="-4%" y="-8%" width="108%" height="116%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="3" result="w"/>
+      <feDisplacementMap in="SourceGraphic" in2="w" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter>
   </svg>
   <div class="tag" id="stats" hidden><span>第<b id="sRound">一</b>回</span><span>對手<b id="sFoes">0</b></span><span>分數<b id="sScore">0</b></span><span>重來<b id="sRetry">2</b></span></div>
   <div class="hud">
@@ -256,22 +295,38 @@ button:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
 
   <div class="ov help" id="ovEnd" hidden>
     <article class="sheet end" role="dialog" aria-modal="true" aria-labelledby="endTitle">
-      <div class="sheet-head"><h2 id="endTitle">結算</h2></div>
+      <div class="sheet-head"><span>端午石合戰</span><h2 id="endTitle">結算</h2></div>
       <section class="pane">
-        <p class="stamp">出人命了　惡俗取締</p>
-        <p class="end-stats" id="eStats"></p>
-        <p class="end-build" id="eBuild"></p>
+        <header class="hl">
+          <p class="kick" id="eKick"></p>
+          <h3 class="big long" id="eStamp">擲石禁止</h3>
+          <p class="deck" id="eQuote" hidden></p>
+        </header>
+        <div class="tally" id="eTally"></div>
+        <div class="end-notes">
+          <p id="eBest"></p>
+          <p id="eBonus" hidden></p>
+          <p id="eBuild"></p>
+          <p id="eClips" hidden></p>
+        </div>
+        <div class="end-more" id="eHistory">
         <h3>石戰怎麼消失的</h3>
-        <p>1934 年，殖民地警察與民俗學家鈴木清一郎記下屏東佳冬石戰的終結：八十多年前的一場端午石戰，水底寮打敗北旗尾之後，按慣例去敗方的房屋洗劫粽子，卻失控演變成大暴亂。被攻擊的一方不滿對方太過火，拿出獵槍還擊投石的人，鬧出了人命，該地從此不再石戰。</p>
-        <p>石戰本質上是「傷不記仇，輸不記恨」的端午社會狂歡，而非武裝械鬥；但在日本殖民政府眼中，它的群眾動員規模與暴力本質，卻是可能失控為叛亂暴動的武裝演習。二十世紀初起，全臺的石戰陸續被取締，改造成以賽跑為主的運動會，在 1920 年代前後逐漸式微；太平洋戰爭爆發、青壯男子被徵召從軍以後，便消失了。</p>
+        <p>1934 年，殖民地警察與民俗學家鈴木清一郎記下屏東佳冬石戰的終結原因：當地耆老提及多年前一場失控的端午石戰，水底寮打敗北旗尾之後，按慣例去敗方的房屋洗劫粽子，卻失控演變成大暴亂。被攻擊的一方不滿對方太過火，拿出獵槍還擊投石的人，鬧出了人命，該地從此不再石戰。</p>
+        <p>石戰本質上是「傷不記仇，輸不記恨」的端午節慶社會狂歡，並非武裝械鬥；但在日本殖民政府眼中，石戰的群眾動員規模與暴力本質，卻是可能失控為叛亂暴動的武裝演習。二十世紀初，全台灣的石戰陸續被取締，改造成以賽跑為主的運動會，在 1920 年代前後逐漸式微。隨著太平洋戰爭爆發、青壯男子被徵召從軍以後，石戰更徹底地消失了。</p>
         <p class="small">出處：鈴木清一郎 1934；楊佳霖 2011。完整書目見說明的「參考」。</p>
         <h3>石戰從未消失過？</h3>
         <p>雖然人們不再石戰，但石戰遊戲在臺灣並未真正被現代性消滅，而是轉化成傷害更低且規則明確的躲避球遊戲，在各級校園發揮著類似的合法釋放暴力、體育競技與消化潛在衝突的作用。</p>
-        <p>躲避球的臺灣歷史底蘊，或許遠比我們想的還要深遠，如此才能解釋，為何本質上暴力的躲避球，會理所當然地在臺灣校園被廣泛推廣給小學生：背後正是端午節石戰的幽靈，在小學裡遊蕩著。</p>
+        <p>躲避球的本土歷史底蘊，或許遠比我們想的還要深遠，如此才能解釋，為何本質上暴力的躲避球，會理所當然地在臺灣校園被廣泛推廣給小學生：背後正是端午節石戰的幽靈，在小學裡遊蕩著。</p>
+        </div>
+        <div class="end-more" id="eCoda" hidden>
+        <h3>石戰小識</h3>
+        <p id="eFact"></p>
+        </div>
       </section>
       <div class="sheet-foot">
-        <button class="btn plain" id="endAgain" type="button">同一邊再來一局</button>
+        <button class="btn plain main" id="endAgain" type="button">同一邊再來一局</button>
         <button class="btn plain" id="endSwap" type="button">換邊</button>
+        <button class="btn plain" id="endName" type="button">新隊伍</button>
         <button class="btn plain" id="endRank" type="button">戰績・剪報</button>
       </div>
     </article>
@@ -340,7 +395,7 @@ button:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
         <h3>音樂</h3>
         <p>《8bit械鬥core_1》取樣自臺灣北管曲牌《風入松》、《急三槍》。</p>
         <p>《8bit械鬥core_2》取樣自臺灣北管曲牌《番竹馬》。</p>
-        <p class="small">by <a href="https://wandanle.bearblog.dev/" target="_blank" rel="noopener">wandanle</a> 在作者的網誌閱讀無關的文章</p>
+        <p class="small">by <a href="https://wandanle.bearblog.dev/" target="_blank" rel="noopener">wandanle</a> 在作者的網誌閱讀無關的文章</p>        
       </section>
     </article>
   </div>
@@ -407,6 +462,7 @@ let roundHp0 = 1; // both sides' total strength when the round began, for the mu
 // When a round is decided the camera closes in on whoever threw the deciding stone and holds there; any click skips.
 const FIN_LEN = 2.8, FIN_IN = 0.6, FIN_Z = 2.3; // seconds in total, seconds to close in (in slow motion), zoom
 let finale = null, lastKO = {}, roundShownAt = 0, overShownAt = 0, noGuard = false;
+const RETRY_MAX = 10; // 重來 banked from 添香油 stop at ten
 const fresh = t => !noGuard && performance.now() - t < 600; // a click that skipped the close-up must not land on what opens after it (noGuard: the test bot)
 function startFinale(win) {
   const k = lastKO[win ? 'E' : 'P'], o = k && k.owner;
@@ -439,13 +495,13 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} },
 };
 const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-let clipsGot = store.get('lukang-stone-clips', {});
+let clipsGot = store.get('lukang-stone-clips', {}), runClips = [], runBest0 = 0; // runClips: first earned in this run
 let trk = { retries: 0, retryLevel: 0, crowdKO: 0 };           // this run: retries used, the round last retried, knockdowns by the crowd
 let rs = { mineKO: 0, otherKO: 0, taken: 0, hats: 0 };        // this round: knockdowns by you and by anyone else, hits we took, hats that saved us
 const clipQ = []; let clipBusy = false;
 function award(id) {
   if (clipsGot[id] || mode === 'title' || trial) return;
-  clipsGot[id] = Date.now(); store.set('lukang-stone-clips', clipsGot);
+  clipsGot[id] = Date.now(); store.set('lukang-stone-clips', clipsGot); runClips.push(id);
   clipQ.push(id); if (!clipBusy) nextClip();
 }
 function nextClip() {
@@ -541,7 +597,7 @@ const PSTART = [[1.28, 0.3], [1.28, 0.5], [1.28, 0.7], [1.5, 0.42], [1.5, 0.58],
 function newGame(side, fromTitle) {
   mySide = side; foeSide = side === 'shi' ? 'hx' : 'shi';
   trial = !!fromTitle && myName === '重斌大帝庄'; stepped = trial || !!clipsGot.ban;
-  trk = { retries: 0, retryLevel: 0, crowdKO: 0 }; runStart();
+  trk = { retries: 0, retryLevel: 0, crowdKO: 0 }; runStart(); runClips = []; runBest0 = best;
   foeName = ''; foeName = pickFoe();
   level = trial ? 36 : 1; score = 0; hits = 0;
   up = UP0(); combo = 0; comboT = 0; stopT = 0; retries = 2; ending = null; tracer = null; flashes = []; shake = 0; cops = [];
@@ -1138,12 +1194,43 @@ function goOn() { // the click after the police scene: on to the closing sheet
   ending.shown = true; cv.style.cursor = 'default'; $('goOn').hidden = true; sfx.page(); showEnd();
   return true;
 }
-function showEnd() {
+// The closing sheet, for the three ways a run ends: the gun (取締), a defeat with no 重來 left (敗陣), or 回庄
+// once ten 重來 are banked (凱旋, which adds one tenth to the score). Set as a headline: the team over
+// 敗陣 / 凱旋 / 擲石禁止; then the figures in a ruled table, a new best score printed in red, notes on the record,
+// the build and the clippings first earned this run; then the history of how 石戰 ended, or for the other two a fact.
+// The closing sheet's two fonts are fetched only when a sheet first opens, so nothing extra loads while playing:
+// the headline face (Google Fonts sends just the characters the sheet sets in it, text=) and Noto Serif TC
+// regular for its text.
+let leadAsked = false;
+function leadFont() {
+  if (leadAsked) return; leadAsked = true;
+  for (const href of ['https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&display=block&text=' + encodeURIComponent('敗陣凱旋擲石禁止傷不記仇輸恨見好就收回庄裡吃粽子新紀錄第一二三四五六七八九十0123456789次分－'),
+                      'https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400&display=swap']) {
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l);
+  }
+}
+function showEnd(kind) {
+  kind = kind || 'gun'; leadFont();
+  const bonus = kind === 'home' ? Math.round(score / 10) : 0; score += bonus; // 凱旋加一成
+  const isNew = !trial && score > 0 && score > runBest0;
   saveBest(); endShownAt = performance.now();
-  award('ban'); runSave('取締'); const rk = runRank();
-  $('eStats').textContent = '打到第 ' + level + ' 回，石頭命中 ' + hits + ' 次，分數 ' + score + '。' + (rk && rk <= 10 ? '本機戰績第' + cnum(rk) + '名。' : '');
+  if (kind === 'gun') award('ban');
+  runSave({ gun: '取締', loss: '敗陣', home: '凱旋' }[kind]); const rk = runRank();
+  $('eKick').textContent = myName;
+  $('eStamp').textContent = { gun: '擲石禁止', loss: '敗陣', home: '凱旋' }[kind]; $('eStamp').classList.toggle('long', kind === 'gun');
+  $('eQuote').hidden = kind === 'gun'; $('eQuote').textContent = kind === 'home' ? '見好就收　回庄裡吃粽子' : '傷不記仇　輸不記恨';
+  const cell = (label, v, unit, extra) => '<div' + (extra ? ' class="new"' : '') + '><small>' + label + '</small><b>' + v + (unit ? '<i>' + unit + '</i>' : '') + '</b>' + (extra || '') + '</div>';
+  $('eTally').innerHTML = cell({ gun: '打到', loss: '撐過', home: '打贏' }[kind], kind === 'loss' ? level - 1 : level, '回') + cell('命中', hits, '次') +
+    cell('分數', score, '', isNew ? '<em class="rec">新紀錄</em>' : '') + cell('名次', rk ? '<span class="kj">第' + cnum(rk) + '</span>' : '－', '');
+  $('eBest').textContent = isNew ? (runBest0 ? '打破本機紀錄 ' + runBest0 + ' 分' : '本機第一筆紀錄') : '本機最高紀錄 ' + best + ' 分';
+  $('eBonus').hidden = !bonus; $('eBonus').textContent = '凱旋加一成：' + (score - bonus) + ' 分，再加 ' + bonus + ' 分';
   const bt = buildText(); $('eBuild').textContent = '帶的本事：' + (bt || '無');
-  $('ovEnd').hidden = false; $('endAgain').focus({ preventScroll: true });
+  const got = runClips.map(id => CLIPS.find(c => c.id === id).t);
+  $('eClips').hidden = !got.length; $('eClips').textContent = '本局見報：' + got.join('・');
+  $('eHistory').hidden = kind !== 'gun'; $('eCoda').hidden = kind === 'gun';
+  if (kind === 'loss') $('eFact').textContent = nextFact();
+  if (kind === 'home') $('eFact').textContent = FACTS.find(f => f.includes('吃粽子')) || nextFact();
+  $('ovEnd').hidden = false; $('ovEnd').querySelector('.pane').scrollTop = 0; $('endAgain').focus({ preventScroll: true });
 }
 // Before every throw the thrower stoops and picks a stone off the ground, as SnowCraft kids pack a snowball.
 function startPick(f, dur) { f.state = 'wind'; f.power = 0; f.pickT = f.pickDur = dur; }
@@ -1554,7 +1641,8 @@ const UPG = {
   gun:    { name: '獵槍', tag: '傳說', max: 1, w: 0,
             desc: () => '不用撿石，不用蓄力。按住就舉槍，放開就開槍，子彈直直飛，打到就倒。' + (handLv() >= 4 ? '你的石頭已經丟到極致，該換傢私了。' : '對面越來越多人，庄裡有人拿出一把獵槍。'),
             note: '<span class="en quote" lang="en">Don’t bring a gun to a stonefight.</span>' },
-  rest:   { name: '添香油', tag: '補給', max: 99, w: 0, desc: () => '去廟裡添香油錢，多一次重來的機會。' }
+  home:   { name: '回庄', tag: '收場', max: 1, w: 0, desc: () => '已經贏下夠多粽子了，該回家大吃一頓了。' },
+  rest:   { name: '添香油', tag: '補給', max: 99, w: 0, desc: () => retries >= RETRY_MAX ? '重來已經存滿十次。多的香油錢記上廟裡的功德榜，分數加 ' + 50 * level + '。' : '去廟裡添香油錢，多一次重來的機會。' }
 };
 const HAND = ['eye', 'big', 'multi', 'vigor', 'bounce', 'zong'];
 const OFFENSE = ['eye', 'big'];
@@ -1575,10 +1663,11 @@ function rollChoices() {
   if (level === 1 && !picks.some(k => OFFENSE.includes(k))) picks[0] = OFFENSE[Math.floor(Math.random() * OFFENSE.length)]; // first pick always has a clear damage-dealer
   if (gunOffered()) { if (picks.length >= 3) picks[2] = 'gun'; else picks.push('gun'); }
   while (picks.length < 3) picks.push('rest');
+  if (retries >= RETRY_MAX) { const i = picks.indexOf('rest'); picks[i >= 0 ? i : picks.findIndex(k => k !== 'gun')] = 'home'; } // ten banked: one may go home
   return shuffle(picks);
 }
 function buildText() {
-  return Object.keys(UPG).filter(k => k !== 'rest' && up[k] > 0).map(k => UPG[k].name + (UPG[k].max > 1 ? ' Lv' + up[k] : '')).join(' · ');
+  return Object.keys(UPG).filter(k => k !== 'rest' && k !== 'home' && up[k] > 0).map(k => UPG[k].name + (UPG[k].max > 1 ? ' Lv' + up[k] : '')).join(' · ');
 }
 function renderCards() {
   const box = $('cards'); box.innerHTML = '';
@@ -1586,8 +1675,8 @@ function renderCards() {
     const u = UPG[k], lv = up[k] || 0, b = document.createElement('button');
     b.type = 'button'; b.className = 'card' + (k === 'gun' ? ' gun' : '');
     let pips = '';
-    if (k !== 'gun' && k !== 'rest') for (let j = 1; j <= u.max; j++) pips += '<span class="pip' + (j <= lv + 1 ? ' on' : '') + '"></span>';
-    const lvTxt = k === 'gun' ? '只此一把' : k === 'rest' ? '補氣' : lv ? 'Lv' + lv + ' → Lv' + (lv + 1) : '新本事';
+    if (k !== 'gun' && k !== 'rest' && k !== 'home') for (let j = 1; j <= u.max; j++) pips += '<span class="pip' + (j <= lv + 1 ? ' on' : '') + '"></span>';
+    const lvTxt = k === 'gun' ? '只此一把' : k === 'home' ? '進入勝利結算' : k === 'rest' ? (retries >= RETRY_MAX ? '重來已滿' : '補氣') : lv ? 'Lv' + lv + ' → Lv' + (lv + 1) : '新本事';
     b.innerHTML = '<span class="key">' + (i + 1) + '<span class="tg">' + u.tag + '</span></span><span class="nm">' + u.name + '</span><span class="lv">' + lvTxt + pips + '</span>' +
       '<span class="ds">' + u.desc(lv) + '</span>' + (u.note ? '<span class="nt">' + u.note + '</span>' : '');
     b.onclick = () => choose(k);
@@ -1597,12 +1686,13 @@ function renderCards() {
 function choose(k) {
   if (mode !== 'round' || fresh(roundShownAt)) return;
   audioInit(); sfx.pick();
+  if (k === 'home') { $('ovRound').hidden = true; mode = 'over'; showEnd('home'); return; } // 回庄: the run ends on a win
   up[k] = (up[k] || 0) + 1;
   const top = { people: 'bros', multi: 'cata', eye: 'cruise', skip: 'skip' }[k]; if (top && up[k] >= UPG[k].max) award(top);
   if (k === 'build') for (const p of players) { p.maxHp++; p.hp++; }
   if (k === 'people') { const q = edge(1.6, rand(0.3, 0.7)); players.push(mkFighter('P', mySide, q.x, q.y, 3 + up.build)); }
   $('ovRound').hidden = true;
-  if (k === 'rest') retries++;
+  if (k === 'rest') { if (retries < RETRY_MAX) retries++; else score += 50 * (level); } // 功德榜 once ten are banked
   healTeam();
   level++; foeName = nextFoe; startRound(); mode = 'play';
 }
@@ -1636,16 +1726,14 @@ function roundWon() {
 }
 function gameOver() {
   saveBest(); mode = 'over'; ptr.down = false; ptr.grab = false; sfx.lose(); overShownAt = performance.now();
+  if (retries <= 0) { showEnd('loss'); return; } // the run is over: straight to the closing sheet
   runSave('敗陣'); const rk = runRank();
   $('oRank').textContent = '本局 ' + score + ' 分' + (rk && rk <= 10 ? '，本機戰績第' + cnum(rk) + '名。' : '。');
   $('oFact').textContent = nextFact();
-  const bt = buildText();
-  const can = retries > 0;
-  $('oLead').textContent = can ? '這一回打輸了。還可以重來 ' + retries + ' 次，本事都還在。'
-    : '撐過 ' + (level - 1) + ' 回，命中 ' + hits + ' 次，分數 ' + score + '。最高紀錄 ' + best + '。' + (bt ? '帶的本事：' + bt + '。' : '');
-  $('retryBtn').hidden = !can; $('retryBtn').textContent = '重來，再打第' + cnum(level) + '回';
-  $('againBtn').textContent = can ? '從頭再來' : '同一邊再來';
-  $('ovOver').hidden = false; (can ? $('retryBtn') : $('againBtn')).focus({ preventScroll: true });
+  $('oLead').textContent = '這一回打輸了。還可以重來 ' + retries + ' 次，本事都還在。';
+  $('retryBtn').hidden = false; $('retryBtn').textContent = '重來，再打第' + cnum(level) + '回';
+  $('againBtn').textContent = '回庄'; $('swapBtn').hidden = true;
+  $('ovOver').hidden = false; $('retryBtn').focus({ preventScroll: true });
 }
 function saveBest() { if (!trial && score > best) { best = score; try { localStorage.setItem('lukang-stone-best', String(best)); } catch (_) {} } }
 
@@ -1745,12 +1833,13 @@ function begin(side, fromTitle) { readName(); audioInit(); $('ovTitle').hidden =
 $('goOn').onclick = () => { goOn(); };
 $('pickShi').onclick = () => begin('shi', true);
 $('pickHx').onclick = () => begin('hx', true);
-$('againBtn').onclick = () => { if (!fresh(overShownAt)) begin(mySide); };
+$('againBtn').onclick = () => { if (mode !== 'over' || fresh(overShownAt)) return; $('ovOver').hidden = true; showEnd('loss'); }; // 回庄: end the run here
 $('retryBtn').onclick = () => { if (mode !== 'over' || retries <= 0 || fresh(overShownAt)) return; audioInit(); retries--; trk.retries++; trk.retryLevel = level; runSave(''); $('ovOver').hidden = true; healTeam(); startRound(); mode = 'play'; hudKey = ''; };
 $('swapBtn').onclick = () => { if (!fresh(overShownAt)) begin(foeSide); };
 const endFresh = () => performance.now() - endShownAt < 450;
 $('endAgain').onclick = () => { if (!endFresh()) begin(mySide); };
 $('endSwap').onclick = () => { if (!endFresh()) begin(foeSide); };
+$('endName').onclick = () => { if (!endFresh()) toTitle(); };
 // Full screen where the browser allows it; not on iPhone Safari, nor inside a frame that forbids it, where the button stays hidden.
 // Going full screen while the phone is on its side also locks it that way, so a tilt mid-throw does not flip the field.
 const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
@@ -2386,6 +2475,18 @@ function placeGoOn() {
   if (left !== b.classList.contains('left')) b.classList.toggle('left', left);
 }
 
+// Breaks a ・-separated line into lines that fit maxW (in the current ctx.font, 17px); a part too long even on its
+// own line shrinks the type instead.
+function breakLine(text, maxW) {
+  const lines = []; let cur = '';
+  for (const part of text.split('・')) {
+    const t = cur ? cur + '・' + part : part;
+    if (cur && ctx.measureText(t).width > maxW) { lines.push(cur); cur = part; } else cur = t;
+  }
+  lines.push(cur);
+  const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
+  return { lines, fs: widest > maxW ? Math.floor(17 * maxW / widest) : 17 };
+}
 function draw() {
   if (quiet && !ending && (!crowdLayers || crowdLayers.w !== scene.width || crowdLayers.h !== scene.height || crowdLayers.W !== W || crowdLayers.H !== H || crowdLayers.crowd !== CROWD)) crowdLayers = buildCrowdLayers(); // before anything is drawn this frame
   const kx = scene.width / W, ky = scene.height / H, sk = shake * 10;
@@ -2483,13 +2584,15 @@ function draw() {
     }
   }
   if (ending && ending.ready && !ending.shown) placeGoOn();
-  if (banner) {
+  if (banner) { // the round's opening strip; when the line under the title is too long for the screen it breaks at a ・
     const b = banner, a = Math.min(1, b.t / 0.25, (b.dur - b.t) / 0.4);
     ctx.globalAlpha = Math.max(0, a); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillStyle = INK; ctx.fillRect(0, H / 2 - 50, W, 100);
-    ctx.strokeStyle = PAPER; ctx.lineWidth = 1.2; ctx.strokeRect(-2, H / 2 - 44, W + 4, 88);
-    ctx.fillStyle = PAPER; ctx.font = '900 46px "Noto Serif TC", "Songti TC", serif'; ctx.fillText(b.text, W / 2, H / 2 - 10);
-    ctx.font = '700 17px "Noto Serif TC", "Songti TC", serif'; ctx.fillText(b.sub, W / 2, H / 2 + 28);
+    if (!b.lines || b.lw !== W) { ctx.font = '700 17px "Noto Serif TC", "Songti TC", serif'; Object.assign(b, breakLine(b.sub, W - 40), { lw: W }); }
+    const ex = (b.lines.length - 1) * 22, top = H / 2 - 50 - ex / 2;
+    ctx.fillStyle = INK; ctx.fillRect(0, top, W, 100 + ex);
+    ctx.strokeStyle = PAPER; ctx.lineWidth = 1.2; ctx.strokeRect(-2, top + 6, W + 4, 88 + ex);
+    ctx.fillStyle = PAPER; ctx.font = '900 46px "Noto Serif TC", "Songti TC", serif'; ctx.fillText(b.text, W / 2, top + 40);
+    ctx.font = '700 ' + b.fs + 'px "Noto Serif TC", "Songti TC", serif'; b.lines.forEach((l, i) => ctx.fillText(l, W / 2, top + 78 + i * 22));
     ctx.globalAlpha = 1;
   }
 }
@@ -2698,17 +2801,27 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 // title scene: both camps standing ready
-(function demo() {
+function titleScene() {
   mySide = 'shi'; foeSide = 'hx';
   players = PSTART.slice(0, 5).map(([c, u]) => { const p = edge(c, u); return mkFighter('P', 'shi', p.x, p.y, 3); });
   enemies = [0, 1, 2, 3].map(i => { const p = clampZone('E', edge(i % 2 ? 0.62 : 0.42, 0.15 + i * 0.22)); return mkFighter('E', 'hx', p.x, p.y, 2); });
   fighters = players.concat(enemies); makeTombs(); sel = null;
   for (const f of fighters) f.prepT = 1e9; // the title scene: everyone gathering stones
-})();
+}
+titleScene();
+// 重新取名: from the closing sheet back to the title, the field swept clean
+function toTitle() {
+  for (const id of ['ovOver', 'ovEnd', 'ovRound', 'ovHelp']) $(id).hidden = true;
+  $('goOn').hidden = true; music.stop(); cv.style.cursor = 'default';
+  ending = null; finale = null; cops = []; tracer = null; flashes = []; shake = 0; endT = 0; banner = null; up = UP0(); trial = false;
+  stones = []; parts = []; texts = []; pebbles = []; blood = []; pools = []; shouts = []; clearStain();
+  CROWD = buildCrowd(); titleScene(); mode = 'title'; hudKey = '';
+  $('ovTitle').hidden = false;
+}
 resize();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { bg = null; });
 requestAnimationFrame(frame);
-window.__lukang = { dbg: { update, playerThrow, select, startRound, choose, healTeam, chargeTime, pickTime, clampZone, pushOut, goOn, battleHeat, renderCards, award, hit, skipRelease, get finale() { return finale; }, get clipsGot() { return clipsGot; }, get runs() { return runs; }, get trk() { return trk; }, get rs() { return rs; }, behindTomb, get tombs() { return tombs; }, get music() { return music; }, setLevel(v) { level = v; }, get hits() { return hits; }, get cops() { return cops; }, foeAt, foeNews, paceOf, get foe() { return foe; }, get quiet() { return quiet; }, get resK() { return resK; }, degrade, get crowdLayers() { return crowdLayers; }, get dl() { return dl; }, get stepped() { return stepped; }, set noGuard(v) { noGuard = v; },
+window.__lukang = { dbg: { update, playerThrow, select, startRound, choose, healTeam, chargeTime, pickTime, clampZone, pushOut, goOn, battleHeat, renderCards, award, hit, skipRelease, get finale() { return finale; }, get clipsGot() { return clipsGot; }, get runs() { return runs; }, get trk() { return trk; }, get rs() { return rs; }, behindTomb, get tombs() { return tombs; }, get music() { return music; }, setLevel(v) { level = v; }, get hits() { return hits; }, set hits(v) { hits = v; }, get banner() { return banner; }, set score(v) { score = v; }, get cops() { return cops; }, foeAt, foeNews, paceOf, get foe() { return foe; }, toTitle, showEnd, get runClips() { return runClips; }, get quiet() { return quiet; }, get resK() { return resK; }, degrade, get crowdLayers() { return crowdLayers; }, get dl() { return dl; }, get stepped() { return stepped; }, set noGuard(v) { noGuard = v; },
     get ptr() { return ptr; }, get sel() { return sel; }, set paused(v) { paused = v; }, get retries() { return retries; }, set retries(v) { retries = v; },
     THROW, PLAYER_MIN, PLAYER_RANGE }, roll(lv) { const o = level; level = lv; const r = rollChoices(); level = o; return r; }, get combo() { return combo; }, get up() { return up; }, get choices() { return choices; }, get ending() { return ending; }, get crowd() { return CROWD; }, get fighters() { return fighters; }, get W() { return W; }, get H() { return H; }, get webgl() { return printer.webgl; }, get blood() { return blood; }, get mode() { return mode; }, get players() { return players; }, get enemies() { return enemies; }, get stones() { return stones; }, get score() { return score; }, get level() { return level; } };
 })();
