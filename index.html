@@ -200,6 +200,7 @@ button:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
     <div class="tools">
       <button class="icon" id="helpBtn" type="button">說明</button>
       <button class="icon" id="mute" type="button" aria-pressed="false">音效 開</button>
+      <button class="icon" id="fsBtn" type="button" aria-pressed="false" hidden>全螢幕</button>
     </div>
   </div>
   <button class="icon goon" id="goOn" type="button" hidden>點一下繼續</button>
@@ -298,6 +299,7 @@ button:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
           <dt>隊友</dt><dd>沒在操控的自己人會自己走動、隨手丟幾顆，但不太準，主力還是靠你。</dd>
           <dt>勝負</dt><dd>挨三下就倒地退場，頭上的菱形是剩下的氣力。打倒對面全部人進入下一回，受傷的人浸過溪水、全隊回滿氣力，對手則越來越多；剪報「擲石禁止」見報以後，第五回起對手每五回才變強一次。我方全倒就輸了這一回，每局有兩次重來這一回的機會。</dd>
           <dt>鍵盤</dt><dd>按 1 到 5 可以切換操控的人。</dd>
+          <dt>手機</dt><dd>橫放比較好玩，螢幕小時畫面會自動拉近。瀏覽器支援的話，右上角會有「全螢幕」；iPhone 的 Safari 不支援網頁全螢幕，可以用「分享 → 加入主畫面」，從主畫面打開就沒有網址列。</dd>
         </dl>
       </section>
       <section class="pane" id="pane-lore" role="tabpanel" aria-labelledby="tab-lore" hidden>
@@ -338,7 +340,6 @@ button:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
         <h3>音樂</h3>
         <p>《8bit械鬥core_1》取樣自臺灣北管曲牌《風入松》、《急三槍》。</p>
         <p>《8bit械鬥core_2》取樣自臺灣北管曲牌《番竹馬》。</p>
-        
         <p class="small">by <a href="https://wandanle.bearblog.dev/" target="_blank" rel="noopener">wandanle</a> 在作者的網誌閱讀無關的文章</p>
       </section>
     </article>
@@ -629,11 +630,38 @@ function buildCrowd() {
   return out;
 }
 let CROWD = buildCrowd();
+// When frames stay slow, things are given up in this order (degrade, called by the watchdog in the print pass):
+// first the crowd stops bobbing and shouting and is drawn from three still sheets; then the print pass runs at 75%
+// and then 56% of the resolution; only after that is the print pass itself turned off. Each step holds for the session.
+let quiet = false, still = false, crowdLayers = null, resK = 1, graceUntil = 0;
+function degrade() {
+  if (!quiet) { quiet = true; return true; }
+  if (resK > 0.6) { resK *= 0.75; resize(); return true; }
+  return false;
+}
+// the still crowd on three bands: the top rows behind everyone, the bottom back row behind our flag, the front row before it
+const CROWD_BANDS = [['top', -60, 70, c => c.y < H / 2, -1e9], ['back', -90, 12, c => c.y >= H / 2 && c.y < H - 14, () => H - 15], ['front', -90, 12, c => c.y >= H - 14, () => H - 13]];
+function buildCrowdLayers() {
+  const kx = scene.width / W, ky = scene.height / H, out = { w: scene.width, h: scene.height, W, H, crowd: CROWD, bands: [] };
+  still = true;
+  for (const [name, a, b, test, key] of CROWD_BANDS) {
+    const y0 = name === 'top' ? a : H + a, bh = Math.ceil((b - a) * ky);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, scene.width, bh);
+    ctx.setTransform(kx, 0, 0, ky, 0, -y0 * ky);
+    for (const c of CROWD.filter(c => !c.dead && test(c)).sort((p, q) => p.y - q.y)) drawOnlooker(c);
+    const l = document.createElement('canvas'); l.width = scene.width; l.height = bh;
+    l.getContext('2d').drawImage(scene, 0, 0, scene.width, bh, 0, 0, scene.width, bh);
+    out.bands.push({ l, y0, key: typeof key === 'function' ? key() : key });
+  }
+  still = false;
+  return out;
+}
 let cheer = 0, fever = 0.25, lastHit = null, shouts = [], shoutT = 3;
 const SHOUTS = ['掔落！', '拍！', '掔落！', '閣來！', '好！'];
 const BLOODY = ['掔落！', '見血！', '好！', '閣來！'];
 // a few of the onlookers nearest the spot shout something
 function shout(x, y, n, words) {
+  if (quiet && !ending) return; // a crowd that has gone quiet to save frames does not shout
   const near = CROWD.filter(c => c.x > 4 && c.x < W - 4).sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y)).slice(0, 12);
   for (let i = 0; i < n && near.length; i++) {
     const c = near.splice(Math.floor(Math.random() * near.length), 1)[0];
@@ -1624,11 +1652,12 @@ function saveBest() { if (!trial && score > best) { best = score; try { localSto
 // ---------- input ----------
 const ptr = { down: false, grab: false, id: null, t0: 0, x: W / 2, y: H / 2, ox: 0, oy: 0 };
 function toWorld(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; }
-function pickPlayer(p) {
-  let bestF = null, bd = 1e9;
+function pickPlayer(p, touch) {
+  let bestF = null, bd = 1e9; const R = Math.max(30, 26 / cssK);
   for (const f of players) {
     if (f.down) continue;
-    if (Math.abs(p.x - f.x) < 17 && p.y > f.y - 50 && p.y < f.y + 10) { const d = Math.hypot(p.x - f.x, p.y - (f.y - 20)); if (d < bd) { bd = d; bestF = f; } }
+    const d = Math.hypot(p.x - f.x, p.y - (f.y - 20));
+    if ((touch ? d < R : Math.abs(p.x - f.x) < 17 && p.y > f.y - 50 && p.y < f.y + 10) && d < bd) { bd = d; bestF = f; }
   }
   return bestF;
 }
@@ -1642,7 +1671,7 @@ cv.addEventListener('pointerdown', e => {
   if (mode !== 'play') return;
   e.preventDefault();
   const p = toWorld(e); ptr.x = p.x; ptr.y = p.y;
-  const f = pickPlayer(p);
+  const f = pickPlayer(p, e.pointerType !== 'mouse');
   if (!f) return;
   select(f);
   if (f.stun > 0) return;
@@ -1722,6 +1751,19 @@ $('swapBtn').onclick = () => { if (!fresh(overShownAt)) begin(foeSide); };
 const endFresh = () => performance.now() - endShownAt < 450;
 $('endAgain').onclick = () => { if (!endFresh()) begin(mySide); };
 $('endSwap').onclick = () => { if (!endFresh()) begin(foeSide); };
+// Full screen where the browser allows it; not on iPhone Safari, nor inside a frame that forbids it, where the button stays hidden.
+// Going full screen while the phone is on its side also locks it that way, so a tilt mid-throw does not flip the field.
+const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+function fsToggle() {
+  const de = document.documentElement;
+  if (fsEl()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+  const req = de.requestFullscreen || de.webkitRequestFullscreen, r = req && req.call(de, { navigationUI: 'hide' });
+  const lock = () => { if (screen.orientation && screen.orientation.lock && matchMedia('(orientation: landscape)').matches) screen.orientation.lock('landscape').catch(() => {}); };
+  if (r && r.then) r.then(lock).catch(() => {}); else lock();
+}
+function fsSync() { const on = !!fsEl(); $('fsBtn').textContent = on ? '離開全螢幕' : '全螢幕'; $('fsBtn').setAttribute('aria-pressed', on); }
+if (document.fullscreenEnabled || document.webkitFullscreenEnabled) { $('fsBtn').hidden = false; $('fsBtn').onclick = fsToggle; }
+document.addEventListener('fullscreenchange', fsSync); document.addEventListener('webkitfullscreenchange', fsSync);
 $('mute').onclick = () => { muted = !muted; $('mute').textContent = '音效 ' + (muted ? '關' : '開'); $('mute').setAttribute('aria-pressed', muted); audioInit(); murmurLevel(); };
 
 // ---------- HUD ----------
@@ -2001,12 +2043,12 @@ function drawDeadOnlooker(c) {
 function drawOnlooker(c) {
   if (c.dead) return drawDeadOnlooker(c);
   const running = ending && c.flee && ending.t > c.react;
-  const fv = fever, t = time * c.sp, burst = cheer > 0 ? Math.min(1, cheer) : 0;
-  const lean = lastHit ? Math.max(-1, Math.min(1, (lastHit.x - c.x) / 260)) * fv * 6 : 0;
-  const surge = (c.y < H / 2 ? 1 : -1) * fv * 2.5;
-  const jump = running ? Math.abs(Math.sin(t * 15 + c.ph)) * 3 : Math.abs(Math.sin(t * (5 + 7 * fv) + c.ph)) * (0.7 + 3.2 * fv + 3 * burst);
+  const fv = still ? 0.3 : fever, t = still ? 0 : time * c.sp, burst = still || cheer <= 0 ? 0 : Math.min(1, cheer);
+  const lean = lastHit && !still ? Math.max(-1, Math.min(1, (lastHit.x - c.x) / 260)) * fv * 6 : 0;
+  const surge = still ? 0 : (c.y < H / 2 ? 1 : -1) * fv * 2.5;
+  const jump = still ? 0 : running ? Math.abs(Math.sin(t * 15 + c.ph)) * 3 : Math.abs(Math.sin(t * (5 + 7 * fv) + c.ph)) * (0.7 + 3.2 * fv + 3 * burst);
   const s = c.row * (c.kid ? 0.78 : 1);
-  const x = running ? c.x + c.ox : c.x + lean + Math.sin(t * 2.1 + c.ph) * 1.4, y = running ? c.y + c.oy : c.y + surge;
+  const x = running ? c.x + c.ox : c.x + lean + (still ? 0 : Math.sin(t * 2.1 + c.ph) * 1.4), y = running ? c.y + c.oy : c.y + surge;
   if (x < -30 || x > W + 30 || y < -60 || y > H + 70) return;
   ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
   if (c.front) hShadow(2, 0, 10, 3);
@@ -2019,7 +2061,7 @@ function drawOnlooker(c) {
   const pump = Math.sin(t * (8 + 8 * fv) + c.ph), up = Math.max(0, pump);
   let L, R;
   if (running) { const fl = Math.sin(t * 13 + c.ph) * 5; L = [-12, -42 + fl]; R = [12, -42 - fl]; }
-  else if (c.thr && time - c.thr < 0.35) { L = [-10, -16]; R = [13, -48]; }
+  else if (c.thr && time - c.thr < 0.35 && !still) { L = [-10, -16]; R = [13, -48]; }
   else if (c.stick) { L = [-7, -42 + pump * 3]; R = [7, -44 - pump * 3]; }
   else if (c.mood < 0.4) { L = [-10, -14]; R = [9 + pump * 1.5, -36 - 8 * up - 6 * fv]; }
   else if (c.mood < 0.7) { const hi = fv > 0.45 || burst > 0; L = hi ? [-12, -42 - 4 * up] : [-10, -15]; R = hi ? [12, -42 - 4 * (1 - up)] : [10 + pump * 3, -24]; }
@@ -2345,6 +2387,7 @@ function placeGoOn() {
 }
 
 function draw() {
+  if (quiet && !ending && (!crowdLayers || crowdLayers.w !== scene.width || crowdLayers.h !== scene.height || crowdLayers.W !== W || crowdLayers.H !== H || crowdLayers.crowd !== CROWD)) crowdLayers = buildCrowdLayers(); // before anything is drawn this frame
   const kx = scene.width / W, ky = scene.height / H, sk = shake * 10;
   const ox = sk ? (Math.random() - 0.5) * sk * kx : 0, oy = sk ? (Math.random() - 0.5) * sk * ky : 0;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -2362,7 +2405,9 @@ function draw() {
   for (const s of stones) { const k = Math.max(0.35, 1 - s.z / 260); ell(s.x, s.y, 4.5 * k, 2 * k, 'rgba(27,24,20,' + (0.45 * k) + ')'); }
   const list = [];
   for (const t of tombs) list.push({ y: t.y + 3, d: () => drawTomb(t) });
-  for (const c of CROWD) list.push({ y: c.y, d: () => drawOnlooker(c) });
+  if (quiet && !ending && z <= 1.001 && crowdLayers) {
+    for (const b of crowdLayers.bands) list.push({ y: b.key, d: () => { ctx.save(); ctx.setTransform(z, 0, 0, z, bx, by + b.y0 * ky * z); ctx.drawImage(b.l, 0, 0); ctx.restore(); } });
+  } else for (const c of CROWD) list.push({ y: c.y, d: () => drawOnlooker(c) });
   for (const f of fighters) list.push({ y: f.y, d: () => drawFighter(f) });
   for (const c of cops) list.push({ y: c.y, d: () => drawCop(c) });
   list.push({ y: 170, d: () => drawFlag(26, 170, foeSide) });
@@ -2545,10 +2590,10 @@ void main(){
   return {
     get webgl() { return on; },
     present(now) {
-      if (on && lastT) { // watchdog: about 3 s of frames slower than ~22 fps turns the print pass off
-        const dt = now - lastT;
-        slowMs = dt > 45 ? slowMs + Math.min(dt, 1000) : Math.max(0, slowMs - dt * 2);
-        if (slowMs > 3000) on = false;
+      if (lastT) { // watchdog: about 3 s of frames slower than ~22 fps gives something up (see degrade); the print pass goes last.
+        const dt = now - lastT; // a gap over 250 ms is a pause, and the second after a resize or a return from another app is not judged
+        if (dt <= 250 && now > graceUntil) slowMs = dt > 45 ? slowMs + dt : Math.max(0, slowMs - dt * 2);
+        if (slowMs > 3000) { slowMs = 0; if (!degrade()) on = false; }
       }
       lastT = now;
       if (on && prog && !gl.isContextLost()) {
@@ -2588,17 +2633,26 @@ function setWorld(nW, nH) {
   W = nW; H = nH; NRM = calcNrm(); if (!ending) CROWD = buildCrowd(); bg = null;
   return true;
 }
+// The field keeps the same area on any screen, scaled to fit, which on a phone shrinks everyone to about 0.7 of their size.
+// Below MIN_SCALE (css px per field px) a small screen shows a smaller field instead, down to 40% of the area, so the
+// people stay big enough to see and to grab with a finger. Computers and tablets are not affected.
+const MIN_SCALE = 0.9;
+let cssK = 1; // css px per field px, for touch picking
 function resize() {
   const app = $('app'), vw = Math.max(1, app.clientWidth), vh = Math.max(1, app.clientHeight);
   const ar = Math.max(0.45, Math.min(2.4, vw / vh));
-  const changed = setWorld(Math.round(Math.sqrt(AREA * ar)), Math.round(Math.sqrt(AREA / ar)));
+  const fit = Math.min(vw / Math.sqrt(AREA * ar), vh / Math.sqrt(AREA / ar)), area = AREA * Math.max(0.4, Math.min(1, (fit / MIN_SCALE) ** 2));
+  const changed = setWorld(Math.round(Math.sqrt(area * ar)), Math.round(Math.sqrt(area / ar)));
   let cw = vw, ch = vw * H / W; if (ch > vh) { ch = vh; cw = vh * W / H; }
+  cssK = cw / W;
   cv.style.width = cw + 'px'; cv.style.height = ch + 'px';
-  const k = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(2.4e6 / (cw * ch)));
+  const k = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(2.4e6 / (cw * ch))) * resK;
+  graceUntil = performance.now() + 1200;
   const w = Math.max(320, Math.round(cw * k)), h = Math.round(w * H / W);
   if (changed || scene.width !== w || scene.height !== h || !stain) { scene.width = w; scene.height = h; bg = null; makeStain(); }
   if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
 }
+document.addEventListener('visibilitychange', () => { graceUntil = performance.now() + 1200; });
 let resizeQueued = false;
 window.addEventListener('resize', () => { if (!resizeQueued) { resizeQueued = true; requestAnimationFrame(() => { resizeQueued = false; resize(); }); } });
 let last = performance.now();
@@ -2654,7 +2708,7 @@ function frame(now) {
 resize();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { bg = null; });
 requestAnimationFrame(frame);
-window.__lukang = { dbg: { update, playerThrow, select, startRound, choose, healTeam, chargeTime, pickTime, clampZone, pushOut, goOn, battleHeat, renderCards, award, hit, skipRelease, get finale() { return finale; }, get clipsGot() { return clipsGot; }, get runs() { return runs; }, get trk() { return trk; }, get rs() { return rs; }, behindTomb, get tombs() { return tombs; }, get music() { return music; }, setLevel(v) { level = v; }, get hits() { return hits; }, get cops() { return cops; }, foeAt, foeNews, paceOf, get foe() { return foe; }, get dl() { return dl; }, get stepped() { return stepped; }, set noGuard(v) { noGuard = v; },
+window.__lukang = { dbg: { update, playerThrow, select, startRound, choose, healTeam, chargeTime, pickTime, clampZone, pushOut, goOn, battleHeat, renderCards, award, hit, skipRelease, get finale() { return finale; }, get clipsGot() { return clipsGot; }, get runs() { return runs; }, get trk() { return trk; }, get rs() { return rs; }, behindTomb, get tombs() { return tombs; }, get music() { return music; }, setLevel(v) { level = v; }, get hits() { return hits; }, get cops() { return cops; }, foeAt, foeNews, paceOf, get foe() { return foe; }, get quiet() { return quiet; }, get resK() { return resK; }, degrade, get crowdLayers() { return crowdLayers; }, get dl() { return dl; }, get stepped() { return stepped; }, set noGuard(v) { noGuard = v; },
     get ptr() { return ptr; }, get sel() { return sel; }, set paused(v) { paused = v; }, get retries() { return retries; }, set retries(v) { retries = v; },
     THROW, PLAYER_MIN, PLAYER_RANGE }, roll(lv) { const o = level; level = lv; const r = rollChoices(); level = o; return r; }, get combo() { return combo; }, get up() { return up; }, get choices() { return choices; }, get ending() { return ending; }, get crowd() { return CROWD; }, get fighters() { return fighters; }, get W() { return W; }, get H() { return H; }, get webgl() { return printer.webgl; }, get blood() { return blood; }, get mode() { return mode; }, get players() { return players; }, get enemies() { return enemies; }, get stones() { return stones; }, get score() { return score; }, get level() { return level; } };
 })();
